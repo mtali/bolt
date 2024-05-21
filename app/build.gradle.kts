@@ -1,3 +1,5 @@
+import org.mtali.Configuration
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -7,15 +9,15 @@ plugins {
 }
 
 android {
-    namespace = "org.mtali"
-    compileSdk = 34
+    namespace = Configuration.PACKAGE_NAME
+    compileSdk = Configuration.COMPILE_SDK
 
     defaultConfig {
-        applicationId = "org.mtali"
-        minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = Configuration.PACKAGE_NAME
+        minSdk = Configuration.MIN_SDK
+        targetSdk = Configuration.TARGET_SDK
+        versionCode = Configuration.VERSION_CODE
+        versionName = Configuration.VERSION_NAME
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
