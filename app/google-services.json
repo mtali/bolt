@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "407427810942",
+    "project_id": "bolt-ee4f7",
+    "storage_bucket": "bolt-ee4f7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407427810942:android:93e7fa2b0f2fcfba953a2f",
+        "android_client_info": {
+          "package_name": "org.mtali"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDNO-ApFKWcoZnBSWeEWZfBrKAbyNRRA4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
