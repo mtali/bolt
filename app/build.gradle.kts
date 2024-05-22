@@ -107,6 +107,7 @@ dependencies {
     val firebaseBom = platform(libs.firebase.bom)
     implementation(firebaseBom)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
 
     // Testing
     testImplementation(libs.junit)
