@@ -103,6 +103,11 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
 
+    // Firebase
+    val firebaseBom = platform(libs.firebase.bom)
+    implementation(firebaseBom)
+    implementation(libs.firebase.analytics)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

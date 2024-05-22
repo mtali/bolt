@@ -21,6 +21,7 @@ retrofit-kotlinx-serialization-json = "1.0.0"
 okhttp = "4.12.0"
 kotlinx-serialization-json = "1.6.3"
 google-services = "4.4.1"
+firebase-boom = "33.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,9 @@ retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.r
 retrofit-kotlin-serialization = { group = "com.jakewharton.retrofit", name = "retrofit2-kotlinx-serialization-converter", version.ref = "retrofit-kotlinx-serialization-json" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+# Firebase
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-boom" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
