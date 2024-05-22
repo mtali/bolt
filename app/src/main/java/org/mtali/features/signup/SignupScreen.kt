@@ -21,5 +21,4 @@ private fun SignupScreen() {
             Text(text = "Signup screen")
         }
     }
-
 }

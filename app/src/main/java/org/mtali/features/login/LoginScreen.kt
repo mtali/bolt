@@ -2,7 +2,7 @@ package org.mtali.features.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.mtali.R
 import org.mtali.core.designsystem.components.boltHeader
 import org.mtali.core.designsystem.components.height
+import org.mtali.core.utils.ELEMENT_WIDTH
 
 
 @Composable
@@ -79,7 +80,7 @@ private fun LoginScreen(
         height(30.dp)
 
         emailField(
-            modifier = Modifier.widthIn(max = 280.dp),
+            modifier = Modifier.width(ELEMENT_WIDTH),
             email = form.email,
             onEmailChange = onEmailChange
         )
@@ -87,14 +88,14 @@ private fun LoginScreen(
         height(6.dp)
 
         passwordField(
-            modifier = Modifier.widthIn(max = 280.dp),
+            modifier = Modifier.width(ELEMENT_WIDTH),
             password = form.password,
             onPasswordChange = onPasswordChange
         )
 
         height(12.dp)
 
-        loginButton(onClick = onAttemptLogin, modifier = Modifier.widthIn(min = 280.dp))
+        loginButton(onClick = onAttemptLogin, modifier = Modifier.width(ELEMENT_WIDTH))
 
         height(25.dp)
 
