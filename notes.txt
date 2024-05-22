@@ -1,0 +1,10 @@
+Firebase configuration
+
+1. To generate SHA-1 (For firebase)
+ $ ./gradlew signingReport
+
+2. Save google-services.json inside /app
+
+3. Configure google services plugin ()
+
+
