@@ -1,7 +1,8 @@
-package org.mtali
+package app
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
+import org.mtali.BuildConfig
 import timber.log.Timber
 
 @HiltAndroidApp
