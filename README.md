@@ -1,70 +1,35 @@
-# Bolt Clone App
+# 🚗 Bolt Clone App
 
-Unofficial clone of the Bolt app built with Kotlin and Jetpack Compose
+Welcome to the unofficial Bolt clone app! This project is an early-stage clone of the Bolt app, showcasing modern Android development tools and libraries.
 
-Welcome to the unofficial Bolt clone app repository! This project is an early-stage clone of the Bolt app, showcasing the integration of modern Android development tools and libraries.
+## Status: 🚧 In Progress 🚧
 
 ## Features
 
 - **Kotlin**: Modern, expressive programming language.
-- **Jetpack Compose**: Declarative UI toolkit for building native Android apps.
-- **Firebase Auth**: Secure authentication using Firebase.
-- **Stream IO**: Real-time messaging and activity feeds.
-- **Google Maps**: Interactive maps and location services.
-- **Google Places**: Places API for location search and details.
-- **Material3**: Latest Material Design components and theming.
-- **Firestore**: NoSQL database from Firebase for scalable and flexible data storage.
-- **Coroutines**: Simplified concurrency and asynchronous programming.
-
+- **Jetpack Compose**: Declarative UI toolkit.
+- **Firebase Auth**: Secure authentication.
+- **Stream IO**: Real-time messaging.
+- **Google Maps**: Interactive maps.
+- **Google Places**: Location search and details.
+- **Material3**: Latest Material Design components.
+- **Firestore**: Scalable NoSQL database.
+- **Coroutines**: Simplified concurrency.
 
 ## Installation
 
-To get a local copy up and running, follow these steps:
-
-1. **Clone the repository**
+1. **Clone the repo**
    ```sh
    git clone https://github.com/mtali/bolt.git
    cd bolt
    ```
-
 2. **Open in Android Studio**
-   Open Android Studio and select `File -> Open` and navigate to the project directory.
-
-3. **Build the project**
-   Allow Gradle to sync and build the project.
-
+3. **Build the project** (Let Gradle sync)
 4. **Run the app**
-   Select your device/emulator and click `Run`.
-
-## Usage
-
-- **Authentication**: Users can sign up and log in using Firebase Authentication.
-- **Maps**: Users can view and interact with Google Maps for location-based features.
-- **Messaging**: Real-time messaging powered by Stream IO.
-- **Places**: Search for places using Google Places API.
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and create a pull request with your changes. Ensure that your code adheres to the existing code style and includes appropriate tests.
-
-1. **Fork the repository**
-2. **Create your feature branch**
-   ```sh
-   git checkout -b feature/YourFeature
-   ```
-3. **Commit your changes**
-   ```sh
-   git commit -m 'Add some feature'
-   ```
-4. **Push to the branch**
-   ```sh
-   git push origin feature/YourFeature
-   ```
-5. **Open a pull request**
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for more info.
 
 ## Acknowledgements
 
@@ -83,8 +48,8 @@ Emmanuel S Mtali - [@emmanuel_mtali](https://twitter.com/emmanuel_mtali) - emman
 
 Project Link: [https://github.com/mtali/bolt](https://github.com/mtali/bolt)
 
-Leave a ⭐️ if you find this project useful!
+⭐️ If you find this project useful! 🚀
 
 ---
 
-Feel free to explore the code, raise issues, and contribute to this open-source project. Happy coding! 🚀
+Happy coding! 🎉
