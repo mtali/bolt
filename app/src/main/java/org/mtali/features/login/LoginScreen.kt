@@ -34,18 +34,38 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import org.mtali.R
 import org.mtali.core.designsystem.components.boltHeader
 import org.mtali.core.designsystem.components.height
 
 
 @Composable
-fun LoginRoute() {
-    LoginScreen()
+fun LoginRoute(
+    viewModel: LoginViewModel = hiltViewModel(),
+    onNavigateToSignup: () -> Unit
+) {
+
+    val form by viewModel.form
+
+    LoginScreen(
+        form = form,
+        onPasswordChange = viewModel::onPasswordChange,
+        onEmailChange = viewModel::onEmailChange,
+        onAttemptLogin = viewModel::onAttemptLogin,
+        onNavigateToSignup = onNavigateToSignup
+
+    )
 }
 
 @Composable
-private fun LoginScreen() {
+private fun LoginScreen(
+    form: LoginForm,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onAttemptLogin: () -> Unit,
+    onNavigateToSignup: () -> Unit
+) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -60,29 +80,25 @@ private fun LoginScreen() {
 
         emailField(
             modifier = Modifier.widthIn(max = 280.dp),
-            email = "",
-            onEmailChange = {
-
-            }
+            email = form.email,
+            onEmailChange = onEmailChange
         )
 
         height(6.dp)
 
         passwordField(
             modifier = Modifier.widthIn(max = 280.dp),
-            password = "",
-            onPasswordChange = {
-
-            }
+            password = form.password,
+            onPasswordChange = onPasswordChange
         )
 
         height(12.dp)
 
-        loginButton(onClick = {}, modifier = Modifier.widthIn(min = 280.dp))
+        loginButton(onClick = onAttemptLogin, modifier = Modifier.widthIn(min = 280.dp))
 
         height(25.dp)
 
-        signupText(onClick = {})
+        signupText(onClick = onNavigateToSignup)
     }
 }
 
