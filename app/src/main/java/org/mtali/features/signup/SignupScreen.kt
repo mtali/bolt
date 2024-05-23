@@ -36,7 +36,10 @@ import org.mtali.core.utils.handleToast
 
 
 @Composable
-fun SignupRoute(viewModel: SignupViewModel = hiltViewModel()) {
+fun SignupRoute(
+    viewModel: SignupViewModel = hiltViewModel(),
+    onClose: () -> Unit
+) {
 
     val context = LocalContext.current
     viewModel.toastHandler = {
@@ -54,7 +57,7 @@ fun SignupRoute(viewModel: SignupViewModel = hiltViewModel()) {
         onPasswordChange = viewModel::onPasswordChange,
         onAttemptSignup = viewModel::onAttemptSignup,
         onNameChange = viewModel::onNameChange,
-        onClose = {}
+        onClose = onClose
     )
 }
 
@@ -69,10 +72,6 @@ private fun SignupScreen(
     onClose: () -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
-
-        IconButton(onClick = onClose, modifier = Modifier.padding(8.dp)) {
-            Icon(imageVector = Icons.Filled.Close, contentDescription = "close")
-        }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -114,6 +113,10 @@ private fun SignupScreen(
                 modifier = Modifier.width(ELEMENT_WIDTH),
                 isLoading = isLoading
             )
+        }
+
+        IconButton(onClick = onClose, modifier = Modifier.padding(8.dp)) {
+            Icon(imageVector = Icons.Filled.Close, contentDescription = "close")
         }
     }
 }
