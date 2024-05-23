@@ -3,6 +3,7 @@ package org.mtali.features.signup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -69,7 +70,7 @@ private fun SignupScreen(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
 
-        IconButton(onClick = onClose) {
+        IconButton(onClick = onClose, modifier = Modifier.padding(8.dp)) {
             Icon(imageVector = Icons.Filled.Close, contentDescription = "close")
         }
 
@@ -90,13 +91,15 @@ private fun SignupScreen(
                 onNameChange = onNameChange
             )
 
+            height(12.dp)
+
             emailField(
                 modifier = Modifier.width(ELEMENT_WIDTH),
                 email = form.email,
                 onEmailChange = onEmailChange
             )
 
-            height(6.dp)
+            height(12.dp)
 
             passwordField(
                 modifier = Modifier.width(ELEMENT_WIDTH),
@@ -111,9 +114,6 @@ private fun SignupScreen(
                 modifier = Modifier.width(ELEMENT_WIDTH),
                 isLoading = isLoading
             )
-
-            height(25.dp)
-
         }
     }
 }
