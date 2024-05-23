@@ -23,9 +23,17 @@ Welcome to the unofficial Bolt clone app! This project is an early-stage clone o
    git clone https://github.com/mtali/bolt.git
    cd bolt
    ```
-2. **Open in Android Studio**
-3. **Build the project** (Let Gradle sync)
-4. **Run the app**
+2. **Open in Android Studio and sync the project**
+3. **For Firebase configuration, follow [this link](https://firebase.google.com/docs/android/setup)
+   **
+4. **Be sure to generate and set the SHA-1**
+   ```sh
+   ./gradlew signingReport
+   ```
+5. **Enable the Email/Password sign-in provider** (as shown below)
+
+   ![Enable Email/Password](docs/sign-in-provider.png)
+6. **Run the project**
 
 ## License
 
