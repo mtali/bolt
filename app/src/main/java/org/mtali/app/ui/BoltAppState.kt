@@ -1,5 +1,6 @@
 package org.mtali.app.ui
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -7,6 +8,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -23,12 +27,27 @@ fun rememberBoltAppState(
 
 
 @Stable
+@SuppressLint("RestrictedApi")
 class BoltAppState(
     val navController: NavHostController,
     val coroutineScope: CoroutineScope
 ) {
 
     private val isNavigating = AtomicBoolean(false)
+
+
+    /**
+     * This is for observing back stack
+     */
+    val backStack = navController.currentBackStack
+        .map { stackEntries ->
+            stackEntries.map { entry -> entry.destination.route }
+        }
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
 
     /**

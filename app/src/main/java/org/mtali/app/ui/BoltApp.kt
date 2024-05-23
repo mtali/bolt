@@ -12,14 +12,18 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mtali.R
 import org.mtali.app.main.MainUiState
 import org.mtali.app.navigator.BoltNavHost
 import org.mtali.features.login.navigation.navigation.loginRoute
 import org.mtali.features.passenger.navigation.passengerRoute
+import timber.log.Timber
 
 @Composable
 fun BoltApp(
@@ -27,6 +31,9 @@ fun BoltApp(
     uiState: MainUiState,
     onLogout: () -> Unit
 ) {
+
+    val backStack by appState.backStack.collectAsStateWithLifecycle()
+
     Scaffold { innerPadding ->
         Column(
             Modifier
@@ -52,6 +59,11 @@ fun BoltApp(
                 }
             }
         }
+    }
+
+    // Log backstack
+    LaunchedEffect(backStack) {
+        Timber.d("BackStack changed: $backStack")
     }
 }
 
