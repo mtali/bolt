@@ -39,6 +39,8 @@ fun Context.handleToast(code: ToastMessage) {
         ToastMessage.SERVICE_ERROR -> R.string.service_error
         ToastMessage.INVALID_CREDENTIALS -> R.string.invalid_credentials
         ToastMessage.INVALID_INPUT -> R.string.invalid_input
+        ToastMessage.ACCOUNT_EXISTS -> R.string.account_exists
+        ToastMessage.ACCOUNT_CREATED -> R.string.account_created
     }
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }

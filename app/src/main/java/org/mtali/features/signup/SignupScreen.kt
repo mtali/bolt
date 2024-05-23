@@ -38,6 +38,7 @@ import org.mtali.core.utils.handleToast
 @Composable
 fun SignupRoute(
     viewModel: SignupViewModel = hiltViewModel(),
+    onSignupSuccess: () -> Unit,
     onClose: () -> Unit
 ) {
 
@@ -45,6 +46,8 @@ fun SignupRoute(
     viewModel.toastHandler = {
         context.handleToast(it)
     }
+
+    viewModel.successSignupHandler = onSignupSuccess
 
     val form by viewModel.form
 

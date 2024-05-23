@@ -12,8 +12,8 @@ fun NavController.navigateToSignup(navOptions: NavOptions? = null) {
     navigate(signupRoute, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.signupScreen(onClose: () -> Unit) {
+fun NavGraphBuilder.signupScreen(onClose: () -> Unit, onSignupSuccess: () -> Unit) {
     composable(signupRoute) {
-        SignupRoute(onClose = onClose)
+        SignupRoute(onClose = onClose, onSignupSuccess = onSignupSuccess)
     }
 }
