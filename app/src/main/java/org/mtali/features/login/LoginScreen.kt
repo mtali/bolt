@@ -2,6 +2,7 @@ package org.mtali.features.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -35,10 +38,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.mtali.R
 import org.mtali.core.designsystem.components.boltHeader
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.utils.ELEMENT_WIDTH
+import org.mtali.core.utils.handleToast
 
 
 @Composable
@@ -47,21 +52,29 @@ fun LoginRoute(
     onNavigateToSignup: () -> Unit
 ) {
 
+    val context = LocalContext.current
+    viewModel.toastHandler = {
+        context.handleToast(it)
+    }
+
     val form by viewModel.form
+
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     LoginScreen(
         form = form,
+        isLoading = isLoading,
         onPasswordChange = viewModel::onPasswordChange,
         onEmailChange = viewModel::onEmailChange,
         onAttemptLogin = viewModel::onAttemptLogin,
         onNavigateToSignup = onNavigateToSignup
-
     )
 }
 
 @Composable
 private fun LoginScreen(
     form: LoginForm,
+    isLoading: Boolean,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
     onAttemptLogin: () -> Unit,
@@ -95,7 +108,11 @@ private fun LoginScreen(
 
         height(12.dp)
 
-        loginButton(onClick = onAttemptLogin, modifier = Modifier.width(ELEMENT_WIDTH))
+        loginButton(
+            onClick = onAttemptLogin,
+            modifier = Modifier.width(ELEMENT_WIDTH),
+            isLoading = isLoading
+        )
 
         height(25.dp)
 
@@ -147,14 +164,24 @@ private fun LazyListScope.passwordField(
 
 private fun LazyListScope.loginButton(
     modifier: Modifier = Modifier,
+    isLoading: Boolean,
     onClick: () -> Unit
 ) = item {
     Button(
         modifier = modifier,
-        onClick = onClick,
+        onClick = {
+            if (!isLoading) onClick()
+        },
         shape = OutlinedTextFieldDefaults.shape
     ) {
-        Text(text = stringResource(id = R.string.cont))
+        if (!isLoading)
+            Text(text = stringResource(id = R.string.cont))
+        else
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(25.dp),
+                strokeWidth = 1.5.dp
+            )
     }
 }
 

@@ -56,6 +56,7 @@ class AuthRepositoryImpl @Inject constructor(
                 when (e) {
                     is FirebaseAuthInvalidUserException -> ServiceResult.Value(LoginResult.InvalidCredentials)
                     is FirebaseAuthInvalidCredentialsException -> ServiceResult.Value(LoginResult.InvalidCredentials)
+                    is IllegalArgumentException -> ServiceResult.Value(LoginResult.InvalidInput)
                     else -> ServiceResult.Failure(e)
                 }
             }

@@ -23,4 +23,5 @@ sealed interface SignupResult {
 sealed interface LoginResult {
     data class Success(val user: BoltUser) : LoginResult
     data object InvalidCredentials : LoginResult
+    data object InvalidInput : LoginResult
 }
