@@ -7,4 +7,7 @@ Firebase configuration
 
 3. Configure google services plugin ()
 
+4. Debugs
+- There is utility in BoltAppState that logs back stack 'BackStack changed: '
+
 
