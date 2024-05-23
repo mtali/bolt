@@ -9,6 +9,7 @@
     <string name="signup_free">Signup for free</string>
     <string name="need_ride">Need a ride?</string>
     <string name="no_account">No account?</string>
-
-
+    <string name="service_error">Unable to connect to service 😩</string>
+    <string name="invalid_credentials">Invalid credentials 🤥</string>
+    <string name="invalid_input">Invalid input 🤥</string>
 </resources>
