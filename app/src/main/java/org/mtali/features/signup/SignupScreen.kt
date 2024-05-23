@@ -80,7 +80,7 @@ private fun SignupScreen(
         ) {
             height(64.dp)
 
-            boltHeader(subtitle = R.string.need_ride)
+            boltHeader(subtitle = R.string.signup_free)
 
             height(30.dp)
 
