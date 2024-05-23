@@ -24,8 +24,7 @@ Welcome to the unofficial Bolt clone app! This project is an early-stage clone o
    cd bolt
    ```
 2. **Open in Android Studio and sync the project**
-3. **For Firebase configuration, follow [this link](https://firebase.google.com/docs/android/setup)
-   **
+3. **For Firebase configuration, follow [this link](https://firebase.google.com/docs/android/setup)**
 4. **Be sure to generate and set the SHA-1**
    ```sh
    ./gradlew signingReport
