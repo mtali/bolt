@@ -42,3 +42,6 @@ fun Context.handleToast(code: ToastMessage) {
     }
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
+
+fun String.capitalizeWords(): String =
+    split(" ").joinToString(" ") { it.replaceFirstChar { char -> char.uppercaseChar() } }
