@@ -30,7 +30,7 @@ fun BoltNavHost(
 
         loginScreen(onNavigateToSignup = { navController.navigateToSignup(singleTop()) })
 
-        signupScreen(onClose = { navController.navigateToLogin(singleTop()) })
+        signupScreen(onClose = { navController.navigateToLogin(singleTop()) }) // TODO: restore state
 
         driverScreen()
 
