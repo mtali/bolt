@@ -44,7 +44,12 @@ fun BoltNavHost(
 
 private fun singleTop() = navOptions { launchSingleTop = true }
 
-private fun clear() = navOptions {
+private fun clear(inclusive: Boolean = true) = navOptions {
     launchSingleTop = true
-    popUpTo(0) { inclusive = true }
+    popUpTo(0) { this.inclusive = inclusive }
+}
+
+private fun popUp(popUp: String, inclusive: Boolean = true) = navOptions {
+    launchSingleTop = true
+    popUpTo(popUp) { this.inclusive = inclusive }
 }
