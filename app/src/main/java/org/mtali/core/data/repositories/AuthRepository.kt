@@ -1,9 +1,12 @@
 package org.mtali.core.data.repositories
 
+import kotlinx.coroutines.flow.Flow
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 
 interface AuthRepository {
+    val currentUser: Flow<BoltUser?>
+
     suspend fun signup(email: String, password: String): ServiceResult<SignupResult>
     suspend fun login(email: String, password: String): ServiceResult<LoginResult>
     fun logout(): ServiceResult<Unit>

@@ -6,6 +6,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.mtali.core.data.repositories.AuthRepository
@@ -22,6 +25,16 @@ class AuthRepositoryImpl @Inject constructor(
     @Dispatcher(IO) val ioDispatcher: CoroutineDispatcher,
     private val auth: FirebaseAuth
 ) : AuthRepository {
+
+    override val currentUser: Flow<BoltUser?>
+        get() = callbackFlow {
+            val listener = FirebaseAuth.AuthStateListener { auth ->
+                this.trySend(auth.currentUser?.let { BoltUser(userId = it.uid) })
+            }
+            auth.addAuthStateListener(listener)
+            awaitClose { auth.removeAuthStateListener(listener) }
+        }
+
     override suspend fun signup(email: String, password: String): ServiceResult<SignupResult> =
         withContext(ioDispatcher) {
             try {
