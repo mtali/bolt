@@ -14,7 +14,8 @@ class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    val uiState = authRepository.currentUser.map { user ->
+    val uiState = authRepository.currentUser
+        .map { user ->
         MainUiState.Success(isLoggedIn = user != null)
     }
         .stateIn(

@@ -14,8 +14,8 @@ fun NavController.navigateToPassenger(navOptions: NavOptions? = null) {
 }
 
 
-fun NavGraphBuilder.passengerScreen() {
+fun NavGraphBuilder.passengerScreen(onLogout: () -> Unit) {
     composable(passengerRoute) {
-        PassengerRoute()
+        PassengerRoute(onLogout = onLogout)
     }
 }

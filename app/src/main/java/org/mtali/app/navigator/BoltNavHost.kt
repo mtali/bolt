@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
 import org.mtali.app.ui.BoltAppState
 import org.mtali.features.driver.navigation.driverScreen
+import org.mtali.features.login.navigation.navigation.loginRoute
 import org.mtali.features.login.navigation.navigation.loginScreen
 import org.mtali.features.login.navigation.navigation.navigateToLogin
 import org.mtali.features.passenger.navigation.passengerScreen
@@ -31,13 +32,13 @@ fun BoltNavHost(
         loginScreen(onNavigateToSignup = { navController.navigateToSignup(singleTop()) })
 
         signupScreen(
-            onClose = { navController.navigateToLogin(singleTop()) },
-            onSignupSuccess = { navController.navigateToLogin(singleTop()) }
+            onClose = { navController.navigateToLogin(popUp(loginRoute, inclusive = false)) },
+            onSignupSuccess = { navController.navigateToLogin(clear()) }
         ) // TODO: restore state when navigating to login
 
         driverScreen()
 
-        passengerScreen()
+        passengerScreen(onLogout = onLogout)
     }
 }
 
