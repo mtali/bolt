@@ -57,6 +57,16 @@ android {
     }
 }
 
+secrets {
+    propertiesFileName = "secrets.properties"
+
+    defaultPropertiesFileName = "secrets.defaults.properties"
+
+    ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
+
+    ignoreList.add("sdk.*")
+}
+
 dependencies {
     // Core
     implementation(libs.androidx.core.ktx)
