@@ -1,13 +1,15 @@
 package org.mtali.features.passenger
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
 fun PassengerRoute(onLogout: () -> Unit) {
@@ -16,16 +18,26 @@ fun PassengerRoute(onLogout: () -> Unit) {
 
 @Composable
 private fun PassengerScreen(onLogout: () -> Unit) {
-    LazyColumn(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Map()
+    }
+}
+
+
+@Composable
+private fun Map() {
+    val singapore = LatLng(1.35, 103.87)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(singapore, 10f)
+    }
+    GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        cameraPositionState = cameraPositionState
     ) {
-        item {
-            Text(text = "Passenger screen")
-            Button(onClick = onLogout) {
-                Text(text = "logout")
-            }
-        }
+        Marker(
+            state = MarkerState(position = singapore),
+            title = "Singapore",
+            snippet = "Marker in Singapore"
+        )
     }
 }
