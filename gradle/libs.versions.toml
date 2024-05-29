@@ -25,6 +25,7 @@ firebase-boom = "33.0.0"
 secrets = "2.0.1"
 maps-compose = "4.4.1"
 flexible-bottomsheet = "0.1.2"
+spotless = "6.21.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,3 +74,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
