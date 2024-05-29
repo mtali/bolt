@@ -123,6 +123,9 @@ dependencies {
     // Maps
     implementation(libs.maps.compose)
 
+    // Flexible BottomSheet
+    implementation(libs.flexible.bottomsheet)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
