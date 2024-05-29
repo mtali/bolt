@@ -15,24 +15,39 @@
  */
 package org.mtali.features.passenger
 
-import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import org.mtali.R
+import org.mtali.core.designsystem.components.Width
 
 @Composable
 fun PassengerRoute(onLogout: () -> Unit) {
@@ -40,26 +55,21 @@ fun PassengerRoute(onLogout: () -> Unit) {
 }
 
 @Composable
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 private fun PassengerScreen(onLogout: () -> Unit) {
-  var showInput by remember { mutableStateOf(false) }
-  Scaffold { _ ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(0.dp),
-    ) {
-      Map(
-        onMapLoaded = {
-          showInput = true
-        },
-      )
-    }
+  BottomSheetScaffold(
+    sheetContent = {
+      LocationSearch()
+    },
+    sheetPeekHeight = 120.dp,
+    sheetShape = RoundedCornerShape(topEnd = 10.dp, topStart = 10.dp),
+  ) {
+    Map()
   }
 }
 
 @Composable
-private fun Map(modifier: Modifier = Modifier, onMapLoaded: () -> Unit) {
+private fun Map(modifier: Modifier = Modifier, onMapLoaded: () -> Unit = {}) {
   val singapore = LatLng(1.35, 103.87)
   val cameraPositionState = rememberCameraPositionState {
     position = CameraPosition.fromLatLngZoom(singapore, 10f)
@@ -74,5 +84,40 @@ private fun Map(modifier: Modifier = Modifier, onMapLoaded: () -> Unit) {
       title = "Singapore",
       snippet = "Marker in Singapore",
     )
+  }
+}
+
+@Composable
+private fun LocationSearch(modifier: Modifier = Modifier) {
+  LazyColumn(
+    modifier = modifier
+      .fillMaxHeight()
+      .padding(horizontal = 16.dp),
+  ) {
+    item {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(5.dp))
+          .height(62.dp)
+          .background(MaterialTheme.colorScheme.surface),
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .fillParentMaxHeight(),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Width(width = 16.dp)
+          Icon(
+            imageVector = Icons.Outlined.Search,
+            contentDescription = "search",
+            modifier = Modifier.size(28.dp),
+          )
+          Width(width = 8.dp)
+          Text(text = stringResource(id = R.string.where_to), fontSize = 17.sp)
+        }
+      }
+    }
   }
 }
