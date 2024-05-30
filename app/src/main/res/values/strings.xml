@@ -31,4 +31,7 @@
   <string name="account_created">Account created ✅. To proceed kindly login</string>
   <string name="name">Name</string>
   <string name="where_to">Where to?</string>
+  <string name="your_route">Your route</string>
+  <string name="destination">Destination</string>
+  <string name="search_pickup_loc">Search pick-up location</string>
 </resources>
