@@ -15,6 +15,7 @@
  */
 package org.mtali.features.passenger
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
@@ -209,6 +210,8 @@ private fun LocationSearch(
             },
           )
         }
+
+        BackHandler { onClickClose() }
       }
     }
   }
