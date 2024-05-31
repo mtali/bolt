@@ -81,7 +81,10 @@ fun BoltApp(
   var currentPermissionsStatus by remember {
     mutableStateOf(devicePermissionStatus(locationPermissionGranted, shouldShowPermissionRationale))
   }
-  val locationPermissions = arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION)
+  val locationPermissions = arrayOf(
+    Manifest.permission.ACCESS_COARSE_LOCATION,
+    Manifest.permission.ACCESS_FINE_LOCATION,
+  )
   val locationPermissionLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.RequestMultiplePermissions(),
     onResult = { permissions ->
