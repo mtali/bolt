@@ -69,6 +69,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -78,15 +79,27 @@ import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
 
 @Composable
-fun PassengerRoute(viewMode: PassengerViewMode = hiltViewModel(), onLogout: () -> Unit) {
-  PassengerScreen(onLogout = onLogout, onMapLoaded = viewMode::onMapLoaded)
+fun PassengerRoute(
+  viewMode: PassengerViewMode = hiltViewModel(),
+  onLogout: () -> Unit,
+  locationPermissionGranted: Boolean,
+) {
+  PassengerScreen(
+    onLogout = onLogout,
+    onMapLoaded = viewMode::onMapLoaded,
+    locationPermissionGranted = locationPermissionGranted,
+  )
 }
 
 private val DEFAULT_CORNER = 10.dp
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun PassengerScreen(onLogout: () -> Unit, onMapLoaded: () -> Unit) {
+private fun PassengerScreen(
+  onLogout: () -> Unit,
+  onMapLoaded: () -> Unit,
+  locationPermissionGranted: Boolean,
+) {
   val scope = rememberCoroutineScope()
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true)
   val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
@@ -120,13 +133,17 @@ private fun PassengerScreen(onLogout: () -> Unit, onMapLoaded: () -> Unit) {
         }
       },
     ) {
-      Map(onMapLoaded = onMapLoaded)
+      Map(onMapLoaded = onMapLoaded, locationPermissionGranted = locationPermissionGranted)
     }
   }
 }
 
 @Composable
-private fun Map(modifier: Modifier = Modifier, onMapLoaded: () -> Unit = {}) {
+private fun Map(
+  modifier: Modifier = Modifier,
+  onMapLoaded: () -> Unit,
+  locationPermissionGranted: Boolean,
+) {
   val singapore = LatLng(1.35, 103.87)
   val cameraPositionState = rememberCameraPositionState {
     position = CameraPosition.fromLatLngZoom(singapore, 10f)
@@ -135,6 +152,7 @@ private fun Map(modifier: Modifier = Modifier, onMapLoaded: () -> Unit = {}) {
     modifier = modifier.fillMaxSize(),
     cameraPositionState = cameraPositionState,
     onMapLoaded = onMapLoaded,
+    properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
   ) {
     Marker(
       state = MarkerState(position = singapore),

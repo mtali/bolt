@@ -34,6 +34,7 @@ fun BoltNavHost(
   startDestination: String,
   appState: BoltAppState,
   onLogout: () -> Unit,
+  locationPermissionGranted: Boolean,
 ) {
   val navController = appState.navController
 
@@ -49,9 +50,9 @@ fun BoltNavHost(
       onSignupSuccess = { navController.navigateToLogin(clear()) },
     ) // TODO: restore state when navigating to login
 
-    driverScreen()
+    driverScreen(locationPermissionGranted = locationPermissionGranted)
 
-    passengerScreen(onLogout = onLogout)
+    passengerScreen(onLogout = onLogout, locationPermissionGranted = locationPermissionGranted)
   }
 }
 

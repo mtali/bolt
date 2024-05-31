@@ -137,6 +137,7 @@ fun BoltApp(
             startDestination = if (uiState.isLoggedIn) passengerRoute else loginRoute,
             appState = appState,
             onLogout = onLogout,
+            locationPermissionGranted = locationPermissionGranted,
           )
 
           if (shouldShowPermissionRationale) {
