@@ -41,6 +41,6 @@ fun devicePermissionStatus(granted: Boolean, showRational: Boolean): PermissionS
 }
 
 fun Context.areLocationPermissionGranted(): Boolean {
-  return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+  return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
     PackageManager.PERMISSION_GRANTED
 }
