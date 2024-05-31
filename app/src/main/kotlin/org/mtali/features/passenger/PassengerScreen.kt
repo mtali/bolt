@@ -65,6 +65,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -77,15 +78,15 @@ import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
 
 @Composable
-fun PassengerRoute(onLogout: () -> Unit) {
-  PassengerScreen(onLogout = onLogout)
+fun PassengerRoute(viewMode: PassengerViewMode = hiltViewModel(), onLogout: () -> Unit) {
+  PassengerScreen(onLogout = onLogout, onMapLoaded = viewMode::onMapLoaded)
 }
 
 private val DEFAULT_CORNER = 10.dp
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun PassengerScreen(onLogout: () -> Unit) {
+private fun PassengerScreen(onLogout: () -> Unit, onMapLoaded: () -> Unit) {
   val scope = rememberCoroutineScope()
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true)
   val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
@@ -119,7 +120,7 @@ private fun PassengerScreen(onLogout: () -> Unit) {
         }
       },
     ) {
-      Map()
+      Map(onMapLoaded = onMapLoaded)
     }
   }
 }
