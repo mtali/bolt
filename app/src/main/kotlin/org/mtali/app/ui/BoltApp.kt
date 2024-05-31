@@ -93,7 +93,8 @@ fun BoltApp(
         shouldShowPermissionRationale =
           ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.ACCESS_COARSE_LOCATION)
       }
-      shouldDirectUserToSettings = !shouldDirectUserToSettings && !locationPermissionGranted
+
+      shouldDirectUserToSettings = !shouldShowPermissionRationale && !locationPermissionGranted
       currentPermissionsStatus = devicePermissionStatus(locationPermissionGranted, shouldDirectUserToSettings)
     },
   )
