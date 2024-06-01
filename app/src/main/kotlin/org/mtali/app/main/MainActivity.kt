@@ -50,7 +50,7 @@ import org.mtali.core.designsystem.BoltTheme
 import org.mtali.core.utils.areLocationPermissionGranted
 import timber.log.Timber
 
-val LOCATION_REQUEST_INTERVAL = 10000L
+private const val LOCATION_REQUEST_INTERVAL = 10000L
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
