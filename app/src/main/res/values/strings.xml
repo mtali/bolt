@@ -34,4 +34,7 @@
   <string name="your_route">Your route</string>
   <string name="destination">Destination</string>
   <string name="search_pickup_loc">Search pick-up location</string>
+  <string name="unable_to_retrieve_coordinates_user">Unable to retrieve coordinates for your device.</string>
+  <string name="system_settings_are_preventing_location_updates">System settings are preventing location updates</string>
+  <string name="location_must_be_enabled">This app requires device location to be accessible during rides.</string>
 </resources>

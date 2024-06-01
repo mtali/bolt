@@ -26,6 +26,7 @@ secrets = "2.0.1"
 maps-compose = "4.4.1"
 flexible-bottomsheet = "0.1.2"
 spotless = "6.21.0"
+play-location = "21.3.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -64,6 +65,8 @@ firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
 # Flexible BottomSheet
 flexible-bottomsheet = { module = "com.github.skydoves:flexible-bottomsheet-material3", version.ref = "flexible-bottomsheet" }
+# Location
+play-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-location" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

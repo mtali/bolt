@@ -67,6 +67,7 @@ fun BoltApp(
   uiState: MainUiState,
   onLogout: () -> Unit,
   shouldShowRequestPermissionRationale: () -> Boolean,
+  onLocationPermissionGranted: () -> Unit,
 ) {
   val backStack by appState.backStack.collectAsStateWithLifecycle()
 
@@ -75,11 +76,11 @@ fun BoltApp(
   // Permissions
   val context = LocalContext.current
   val lifecycleOwner = LocalLifecycleOwner.current
-  var locationPermissionGranted by remember { mutableStateOf(context.areLocationPermissionGranted()) }
+  var isLocationPermissionGranted by remember { mutableStateOf(context.areLocationPermissionGranted()) }
   var shouldShowPermissionRationale by remember { mutableStateOf(shouldShowRequestPermissionRationale()) }
   var shouldDirectUserToSettings by remember { mutableStateOf(false) }
   var currentPermissionsStatus by remember {
-    mutableStateOf(devicePermissionStatus(locationPermissionGranted, shouldShowPermissionRationale))
+    mutableStateOf(devicePermissionStatus(isLocationPermissionGranted, shouldShowPermissionRationale))
   }
   val locationPermissions = arrayOf(
     Manifest.permission.ACCESS_COARSE_LOCATION,
@@ -88,29 +89,32 @@ fun BoltApp(
   val locationPermissionLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.RequestMultiplePermissions(),
     onResult = { permissions ->
-      locationPermissionGranted = permissions.values.reduce { acc, isPermissionGranted ->
+      isLocationPermissionGranted = permissions.values.reduce { acc, isPermissionGranted ->
         acc && isPermissionGranted
       }
 
-      if (!locationPermissionGranted) {
+      if (isLocationPermissionGranted) onLocationPermissionGranted()
+
+      if (!isLocationPermissionGranted) {
         shouldShowPermissionRationale =
           ActivityCompat.shouldShowRequestPermissionRationale(context as Activity, Manifest.permission.ACCESS_COARSE_LOCATION)
       }
 
-      shouldDirectUserToSettings = !shouldShowPermissionRationale && !locationPermissionGranted
-      currentPermissionsStatus = devicePermissionStatus(locationPermissionGranted, shouldDirectUserToSettings)
+      shouldDirectUserToSettings = !shouldShowPermissionRationale && !isLocationPermissionGranted
+      currentPermissionsStatus = devicePermissionStatus(isLocationPermissionGranted, shouldDirectUserToSettings)
     },
   )
 
   DisposableEffect(key1 = lifecycleOwner, effect = {
     val observer = LifecycleEventObserver { _, event ->
       if (event == Lifecycle.Event.ON_START &&
-        !locationPermissionGranted &&
+        !isLocationPermissionGranted &&
         !shouldShowPermissionRationale
       ) {
         locationPermissionLauncher.launch(locationPermissions)
       }
     }
+    if (isLocationPermissionGranted) onLocationPermissionGranted()
     lifecycleOwner.lifecycle.addObserver(observer)
     onDispose {
       lifecycleOwner.lifecycle.removeObserver(observer)
@@ -140,7 +144,7 @@ fun BoltApp(
             startDestination = if (uiState.isLoggedIn) passengerRoute else loginRoute,
             appState = appState,
             onLogout = onLogout,
-            locationPermissionGranted = locationPermissionGranted,
+            locationPermissionGranted = isLocationPermissionGranted,
           )
 
           if (shouldShowPermissionRationale) {

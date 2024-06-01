@@ -17,11 +17,13 @@ package org.mtali.app.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.mtali.core.data.repositories.AuthRepository
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,6 +43,10 @@ class MainViewModel @Inject constructor(
 
   fun onLogout() {
     authRepository.logout()
+  }
+
+  fun updatePassengerLocation(latLng: LatLng) {
+    Timber.tag("wakanda").d("Location(lat,lon): (${latLng.latitude}, ${latLng.longitude})")
   }
 }
 
