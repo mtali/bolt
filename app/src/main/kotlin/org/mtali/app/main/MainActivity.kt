@@ -40,9 +40,12 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.mtali.R
 import org.mtali.app.ui.BoltApp
 import org.mtali.app.ui.rememberBoltAppState
@@ -57,14 +60,14 @@ class MainActivity : ComponentActivity() {
 
   private val viewModel by viewModels<MainViewModel>()
   private var locationRequest: LocationRequest? = null
-  private lateinit var locationClient: FusedLocationProviderClient
+  private lateinit var fusedLocationClient: FusedLocationProviderClient
 
   override fun onCreate(savedInstanceState: Bundle?) {
     val splashScreen = installSplashScreen()
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
 
-    locationClient = LocationServices.getFusedLocationProviderClient(this)
+    fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
     var uiState: MainUiState by mutableStateOf(MainUiState.Loading)
     lifecycleScope.launch {
@@ -93,13 +96,25 @@ class MainActivity : ComponentActivity() {
         )
       }
     }
+
+    lifecycleScope.launch {
+      withContext(Dispatchers.Main) {
+        while (true) {
+          startRequestingLocationUpdates()
+          delay(1000)
+        }
+      }
+    }
   }
 
+  /**
+   * Get device last location
+   */
   @SuppressLint("MissingPermission")
   private fun startRequestingLocationUpdates() {
     if (!areLocationPermissionGranted()) return
 
-    locationClient.lastLocation
+    fusedLocationClient.lastLocation
       .addOnCompleteListener { request ->
         if (request.isSuccessful && request.result != null) {
           val location = request.result
@@ -117,6 +132,10 @@ class MainActivity : ComponentActivity() {
       }
   }
 
+  /**
+   * This function manages the overall process of requesting location updates,
+   * including ensuring the necessary permissions and system settings are in place.
+   */
   private fun requestLocation() {
     val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
     if (LocationManagerCompat.isLocationEnabled(locationManager)) {
