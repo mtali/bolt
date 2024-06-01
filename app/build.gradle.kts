@@ -127,6 +127,9 @@ dependencies {
   // Flexible BottomSheet
   implementation(libs.flexible.bottomsheet)
 
+  // Datastore
+  implementation(libs.datastore.preferences)
+
   // Testing
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)
