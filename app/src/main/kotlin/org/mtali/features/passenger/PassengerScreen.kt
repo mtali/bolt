@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
@@ -43,6 +44,7 @@ import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
@@ -60,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,22 +79,34 @@ import kotlinx.coroutines.launch
 import org.mtali.R
 import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
+import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.Location
+import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.models.display
+import org.mtali.core.utils.handleToast
 
 @Composable
 fun PassengerRoute(
-  viewMode: PassengerViewMode = hiltViewModel(),
+  viewModel: PassengerViewMode = hiltViewModel(),
   onLogout: () -> Unit,
   locationPermissionGranted: Boolean,
 ) {
-  val deviceLocation by viewMode.deviceLocation.collectAsStateWithLifecycle(initialValue = null)
+  val context = LocalContext.current
+  val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle(initialValue = null)
+  val destinationQuery by viewModel.destinationQuery.collectAsStateWithLifecycle()
+  val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
+
+  viewModel.toastHandler = { context.handleToast(it) }
 
   PassengerScreen(
     onLogout = onLogout,
-    onMapLoaded = viewMode::onMapLoaded,
+    onMapLoaded = viewModel::onMapLoaded,
     locationPermissionGranted = locationPermissionGranted,
     deviceLocation = deviceLocation,
+    destinationQuery = destinationQuery,
+    onDestinationQueryChange = viewModel::onDestinationQueryChange,
+    autoCompletePlaces = autoCompletePlaces,
+    onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
   )
 }
 
@@ -104,6 +119,10 @@ private fun PassengerScreen(
   onMapLoaded: () -> Unit,
   locationPermissionGranted: Boolean,
   deviceLocation: Location?,
+  destinationQuery: String,
+  onDestinationQueryChange: (String) -> Unit,
+  autoCompletePlaces: List<PlacesAutoComplete>,
+  onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true)
@@ -119,14 +138,14 @@ private fun PassengerScreen(
       sheetContent = {
         LocationSearch(
           progress = progress,
-          onClickSearch = {
-            scope.launch { sheetState.expand() }
-          },
-          onClickClose = {
-            scope.launch { sheetState.partialExpand() }
-          },
+          onClickSearch = { scope.launch { sheetState.expand() } },
+          onClickClose = { scope.launch { sheetState.partialExpand() } },
           sheetExpanded = sheetExpanded,
           deviceLocation = deviceLocation,
+          destinationQuery = destinationQuery,
+          onDestinationQueryChange = onDestinationQueryChange,
+          autoCompletePlaces = autoCompletePlaces,
+          onClickPlaceAutoComplete = onClickPlaceAutoComplete,
         )
       },
       sheetPeekHeight = 120.dp,
@@ -171,6 +190,10 @@ private fun LocationSearch(
   onClickSearch: () -> Unit,
   onClickClose: () -> Unit,
   deviceLocation: Location?,
+  destinationQuery: String,
+  onDestinationQueryChange: (String) -> Unit,
+  autoCompletePlaces: List<PlacesAutoComplete>,
+  onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
 ) {
   LazyColumn(
     modifier = modifier
@@ -209,34 +232,42 @@ private fun LocationSearch(
             value = deviceLocation.display(),
             onValueChange = {},
             modifier = Modifier.fillMaxWidth(),
-            leadingIcon = {
-              Icon(imageVector = Icons.Sharp.Search, contentDescription = null)
-            },
-            placeholder = {
-              Text(text = stringResource(id = R.string.search_pickup_loc))
-            },
+            leadingIcon = { Icon(imageVector = Icons.Sharp.Search, contentDescription = null) },
+            placeholder = { Text(text = stringResource(id = R.string.search_pickup_loc)) },
             enabled = false,
           )
 
           Height(height = 12.dp)
 
           OutlinedTextField(
-            value = "",
-            onValueChange = {},
+            value = destinationQuery,
+            onValueChange = onDestinationQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            leadingIcon = {
-              Icon(imageVector = Icons.Sharp.Search, contentDescription = null)
-            },
-            placeholder = {
-              Text(text = stringResource(id = R.string.destination))
-            },
+            leadingIcon = { Icon(imageVector = Icons.Sharp.Search, contentDescription = null) },
+            placeholder = { Text(text = stringResource(id = R.string.destination)) },
           )
         }
-
         BackHandler { onClickClose() }
+      }
+
+      height(10.dp)
+      items(autoCompletePlaces) {
+        PlaceAutoCompleteListItem(address = it.address, onClick = { onClickPlaceAutoComplete(it) })
       }
     }
   }
+}
+
+@Composable
+private fun PlaceAutoCompleteListItem(address: String, onClick: () -> Unit) {
+  val parts = address.split(",").map { it.trim() }
+  ListItem(
+    headlineContent = { Text(text = parts[0]) },
+    supportingContent = { Text(text = parts.subList(1, parts.size).joinToString(", ")) },
+    modifier = Modifier.clickable {
+      onClick()
+    },
+  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
