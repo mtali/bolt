@@ -25,8 +25,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.mtali.core.data.repositories.AuthRepository
 import org.mtali.core.data.repositories.DeviceRepository
+import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.impl.AuthRepositoryImpl
 import org.mtali.core.data.repositories.impl.DeviceRepositoryImpl
+import org.mtali.core.data.repositories.impl.GoogleRepositoryImpl
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,6 +39,10 @@ abstract class DataModule {
 
   @Binds
   abstract fun bindsDeviceRepo(repo: DeviceRepositoryImpl): DeviceRepository
+
+  @Binds
+  @Singleton
+  abstract fun bindsGoogleRepo(repository: GoogleRepositoryImpl): GoogleRepository
 
   companion object {
     @Provides
