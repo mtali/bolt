@@ -40,12 +40,9 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.mtali.R
 import org.mtali.app.ui.BoltApp
 import org.mtali.app.ui.rememberBoltAppState
@@ -94,15 +91,6 @@ class MainActivity : ComponentActivity() {
             requestLocation()
           },
         )
-      }
-    }
-
-    lifecycleScope.launch {
-      withContext(Dispatchers.Main) {
-        while (true) {
-          startRequestingLocationUpdates()
-          delay(1000)
-        }
       }
     }
   }
