@@ -16,9 +16,12 @@
 package org.mtali.core.data.repositories.impl
 
 import android.content.Context
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -54,6 +57,16 @@ class GoogleRepositoryImpl @Inject constructor(
       ServiceResult.Value(task.autocompletePredictions)
     } catch (e: Exception) {
       Timber.e(e)
+      ServiceResult.Failure(e)
+    }
+  }
+
+  override suspend fun getPlaceLatLng(placeId: String): ServiceResult<LatLng?> = withContext(ioDispatcher) {
+    val placeFields = listOf(Place.Field.LAT_LNG)
+    val request = FetchPlaceRequest.builder(placeId, placeFields).build()
+    try {
+      ServiceResult.Value(client.fetchPlace(request).await().place.latLng)
+    } catch (e: Exception) {
       ServiceResult.Failure(e)
     }
   }

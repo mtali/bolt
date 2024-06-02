@@ -15,9 +15,11 @@
  */
 package org.mtali.core.data.repositories
 
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import org.mtali.core.models.ServiceResult
 
 interface GoogleRepository {
   suspend fun getPlacesAutocomplete(query: String): ServiceResult<List<AutocompletePrediction>>
+  suspend fun getPlaceLatLng(placeId: String): ServiceResult<LatLng?>
 }

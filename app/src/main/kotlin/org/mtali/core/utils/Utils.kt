@@ -55,6 +55,7 @@ fun Context.handleToast(code: ToastMessage) {
     ToastMessage.INVALID_INPUT -> R.string.invalid_input
     ToastMessage.ACCOUNT_EXISTS -> R.string.account_exists
     ToastMessage.ACCOUNT_CREATED -> R.string.account_created
+    ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES -> R.string.unable_to_retrieve_coordinates_user
   }
   Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }

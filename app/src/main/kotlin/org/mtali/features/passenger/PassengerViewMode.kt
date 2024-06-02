@@ -17,6 +17,7 @@ package org.mtali.features.passenger
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,7 +73,22 @@ class PassengerViewMode @Inject constructor(
   }
 
   fun onClickPlaceAutoComplete(place: PlacesAutoComplete) {
-    Timber.tag("wakanda").d("$place")
+    viewModelScope.launch {
+      when (val destLatLng = googleRepository.getPlaceLatLng(placeId = place.prediction.placeId)) {
+        is ServiceResult.Failure -> toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
+        is ServiceResult.Value -> {
+          if (destLatLng.value == null) {
+            toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES)
+          } else {
+            attemptCreateRide(destLatLng.value, place.address)
+          }
+        }
+      }
+    }
+  }
+
+  private fun attemptCreateRide(destLatLon: LatLng, destAddress: String) {
+    Timber.tag("wakanda").d("Ride to $destAddress")
   }
 }
 
