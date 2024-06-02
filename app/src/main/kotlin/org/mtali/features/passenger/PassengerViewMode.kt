@@ -19,12 +19,17 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import org.mtali.core.data.repositories.DeviceRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class PassengerViewMode @Inject constructor() : ViewModel() {
+class PassengerViewMode @Inject constructor(
+  deviceRepository: DeviceRepository,
+) : ViewModel() {
 
   private val _mapIsReady = MutableStateFlow(false)
+
+  val deviceLocation = deviceRepository.deviceLocation
 
   fun onMapLoaded() {
     _mapIsReady.update { true }

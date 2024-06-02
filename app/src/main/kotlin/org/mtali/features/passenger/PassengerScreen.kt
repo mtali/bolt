@@ -66,6 +66,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -75,6 +76,8 @@ import kotlinx.coroutines.launch
 import org.mtali.R
 import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
+import org.mtali.core.models.Location
+import org.mtali.core.models.display
 
 @Composable
 fun PassengerRoute(
@@ -82,10 +85,13 @@ fun PassengerRoute(
   onLogout: () -> Unit,
   locationPermissionGranted: Boolean,
 ) {
+  val deviceLocation by viewMode.deviceLocation.collectAsStateWithLifecycle(initialValue = null)
+
   PassengerScreen(
     onLogout = onLogout,
     onMapLoaded = viewMode::onMapLoaded,
     locationPermissionGranted = locationPermissionGranted,
+    deviceLocation = deviceLocation,
   )
 }
 
@@ -97,6 +103,7 @@ private fun PassengerScreen(
   onLogout: () -> Unit,
   onMapLoaded: () -> Unit,
   locationPermissionGranted: Boolean,
+  deviceLocation: Location?,
 ) {
   val scope = rememberCoroutineScope()
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true)
@@ -119,6 +126,7 @@ private fun PassengerScreen(
             scope.launch { sheetState.partialExpand() }
           },
           sheetExpanded = sheetExpanded,
+          deviceLocation = deviceLocation,
         )
       },
       sheetPeekHeight = 120.dp,
@@ -162,6 +170,7 @@ private fun LocationSearch(
   sheetExpanded: Boolean,
   onClickSearch: () -> Unit,
   onClickClose: () -> Unit,
+  deviceLocation: Location?,
 ) {
   LazyColumn(
     modifier = modifier
@@ -197,7 +206,7 @@ private fun LocationSearch(
           Height(height = 10.dp)
 
           OutlinedTextField(
-            value = "",
+            value = deviceLocation.display(),
             onValueChange = {},
             modifier = Modifier.fillMaxWidth(),
             leadingIcon = {
@@ -206,6 +215,7 @@ private fun LocationSearch(
             placeholder = {
               Text(text = stringResource(id = R.string.search_pickup_loc))
             },
+            enabled = false,
           )
 
           Height(height = 12.dp)

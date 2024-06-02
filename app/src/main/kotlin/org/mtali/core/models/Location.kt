@@ -19,3 +19,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Location(val lat: Double, val lon: Double)
+
+fun Location?.display() = this?.let { "(lat=${it.lat}, lon=${it.lon})" } ?: "Unknown location"
