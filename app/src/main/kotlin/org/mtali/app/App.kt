@@ -16,6 +16,7 @@
 package org.mtali.app
 
 import android.app.Application
+import com.google.android.libraries.places.api.Places
 import dagger.hilt.android.HiltAndroidApp
 import org.mtali.BuildConfig
 import timber.log.Timber
@@ -24,6 +25,11 @@ import timber.log.Timber
 class App : Application() {
   override fun onCreate() {
     super.onCreate()
+    initializePlaces()
     if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+  }
+
+  private fun initializePlaces() {
+    Places.initialize(this, BuildConfig.MAPS_API_KEY)
   }
 }
