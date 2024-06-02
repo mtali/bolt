@@ -24,13 +24,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.mtali.core.data.repositories.AuthRepository
+import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.impl.AuthRepositoryImpl
+import org.mtali.core.data.repositories.impl.DeviceRepositoryImpl
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
   @Binds
   abstract fun bindsAuthRepo(repo: AuthRepositoryImpl): AuthRepository
+
+  @Binds
+  abstract fun bindsDeviceRepo(repo: DeviceRepositoryImpl): DeviceRepository
 
   companion object {
     @Provides

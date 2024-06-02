@@ -22,13 +22,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.AuthRepository
-import timber.log.Timber
+import org.mtali.core.data.repositories.DeviceRepository
+import org.mtali.core.models.Location
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
   private val authRepository: AuthRepository,
+  private val deviceRepository: DeviceRepository,
 ) : ViewModel() {
 
   val uiState = authRepository.currentUser
@@ -46,7 +49,7 @@ class MainViewModel @Inject constructor(
   }
 
   fun updatePassengerLocation(latLng: LatLng) {
-    Timber.tag("wakanda").d("Location(lat,lon): (${latLng.latitude}, ${latLng.longitude})")
+    viewModelScope.launch { deviceRepository.updateLocation(latLng.asLocation()) }
   }
 }
 
@@ -54,3 +57,5 @@ sealed interface MainUiState {
   data object Loading : MainUiState
   data class Success(val isLoggedIn: Boolean = false) : MainUiState
 }
+
+private fun LatLng.asLocation() = Location(lat = latitude, lon = longitude)
