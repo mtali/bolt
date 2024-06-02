@@ -22,10 +22,12 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
+import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
@@ -47,7 +49,7 @@ class PassengerViewMode @Inject constructor(
   private val _destinationQuery = MutableStateFlow("")
   val destinationQuery: StateFlow<String> = _destinationQuery
 
-  val deviceLocation = deviceRepository.deviceLocation
+  private val deviceLocation = deviceRepository.deviceLocation
 
   fun onMapLoaded() = _mapIsReady.update { true }
 
@@ -80,15 +82,17 @@ class PassengerViewMode @Inject constructor(
           if (destLatLng.value == null) {
             toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES)
           } else {
-            attemptCreateRide(destLatLng.value, place.address)
+            deviceLocation.first()?.let { currentLocation ->
+              attemptCreateRide(destLatLng.value, place.address, currentLocation)
+            }
           }
         }
       }
     }
   }
 
-  private fun attemptCreateRide(destLatLon: LatLng, destAddress: String) {
-    Timber.tag("wakanda").d("Ride to $destAddress")
+  private fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
+    Timber.tag("wakanda").d("Ride to $destAddress \nfrom $currentLocation")
   }
 }
 

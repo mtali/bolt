@@ -61,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -80,9 +81,7 @@ import org.mtali.R
 import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
-import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
-import org.mtali.core.models.display
 import org.mtali.core.utils.handleToast
 
 @Composable
@@ -92,7 +91,6 @@ fun PassengerRoute(
   locationPermissionGranted: Boolean,
 ) {
   val context = LocalContext.current
-  val deviceLocation by viewModel.deviceLocation.collectAsStateWithLifecycle(initialValue = null)
   val destinationQuery by viewModel.destinationQuery.collectAsStateWithLifecycle()
   val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
 
@@ -102,7 +100,6 @@ fun PassengerRoute(
     onLogout = onLogout,
     onMapLoaded = viewModel::onMapLoaded,
     locationPermissionGranted = locationPermissionGranted,
-    deviceLocation = deviceLocation,
     destinationQuery = destinationQuery,
     onDestinationQueryChange = viewModel::onDestinationQueryChange,
     autoCompletePlaces = autoCompletePlaces,
@@ -118,7 +115,6 @@ private fun PassengerScreen(
   onLogout: () -> Unit,
   onMapLoaded: () -> Unit,
   locationPermissionGranted: Boolean,
-  deviceLocation: Location?,
   destinationQuery: String,
   onDestinationQueryChange: (String) -> Unit,
   autoCompletePlaces: List<PlacesAutoComplete>,
@@ -141,7 +137,6 @@ private fun PassengerScreen(
           onClickSearch = { scope.launch { sheetState.expand() } },
           onClickClose = { scope.launch { sheetState.partialExpand() } },
           sheetExpanded = sheetExpanded,
-          deviceLocation = deviceLocation,
           destinationQuery = destinationQuery,
           onDestinationQueryChange = onDestinationQueryChange,
           autoCompletePlaces = autoCompletePlaces,
@@ -189,7 +184,6 @@ private fun LocationSearch(
   sheetExpanded: Boolean,
   onClickSearch: () -> Unit,
   onClickClose: () -> Unit,
-  deviceLocation: Location?,
   destinationQuery: String,
   onDestinationQueryChange: (String) -> Unit,
   autoCompletePlaces: List<PlacesAutoComplete>,
@@ -229,10 +223,10 @@ private fun LocationSearch(
           Height(height = 10.dp)
 
           OutlinedTextField(
-            value = deviceLocation.display(),
+            value = stringResource(id = R.string.current),
             onValueChange = {},
             modifier = Modifier.fillMaxWidth(),
-            leadingIcon = { Icon(imageVector = Icons.Sharp.Search, contentDescription = null) },
+            leadingIcon = { CurrentDot() },
             placeholder = { Text(text = stringResource(id = R.string.search_pickup_loc)) },
             enabled = false,
           )
@@ -254,6 +248,34 @@ private fun LocationSearch(
       items(autoCompletePlaces) {
         PlaceAutoCompleteListItem(address = it.address, onClick = { onClickPlaceAutoComplete(it) })
       }
+    }
+  }
+}
+
+@Composable
+private fun CurrentDot(modifier: Modifier = Modifier) {
+  val rounded = RoundedCornerShape(100)
+
+  Box(
+    modifier = modifier
+      .size(21.dp)
+      .clip(rounded)
+      .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+    contentAlignment = Alignment.Center,
+  ) {
+    Box(
+      modifier = Modifier
+        .size(18.dp)
+        .clip(rounded)
+        .background(Color.White),
+      contentAlignment = Alignment.Center,
+    ) {
+      Box(
+        modifier = Modifier
+          .size(14.5.dp)
+          .clip(rounded)
+          .background(MaterialTheme.colorScheme.primary),
+      )
     }
   }
 }
