@@ -58,4 +58,4 @@ sealed interface MainUiState {
   data class Success(val isLoggedIn: Boolean = false) : MainUiState
 }
 
-private fun LatLng.asLocation() = Location(lat = latitude, lon = longitude)
+private fun LatLng.asLocation() = Location(lat = latitude, lng = longitude)

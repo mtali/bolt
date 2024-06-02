@@ -25,6 +25,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.mtali.R
 import org.mtali.core.models.ToastMessage
+import java.util.UUID
 
 val ELEMENT_WIDTH = 290.dp
 
@@ -62,3 +63,5 @@ fun Context.handleToast(code: ToastMessage) {
 
 fun String.capitalizeWords(): String =
   split(" ").joinToString(" ") { it.replaceFirstChar { char -> char.uppercaseChar() } }
+
+fun newUUID() = "${UUID.randomUUID()}"

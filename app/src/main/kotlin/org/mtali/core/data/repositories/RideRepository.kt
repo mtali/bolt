@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mtali.core.models
+package org.mtali.core.data.repositories
 
-import kotlinx.serialization.Serializable
+import org.mtali.core.models.Ride
+import org.mtali.core.models.ServiceResult
 
-@Serializable
-data class Location(val lat: Double, val lng: Double)
-
-fun Location?.display() = this?.let { "(lat=${it.lat}, lon=${it.lng})" } ?: "Unknown location"
+interface RideRepository {
+  suspend fun createRide(ride: Ride): ServiceResult<String>
+}

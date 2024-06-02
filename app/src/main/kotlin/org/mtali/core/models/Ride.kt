@@ -15,9 +15,12 @@
  */
 package org.mtali.core.models
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class Location(val lat: Double, val lng: Double)
-
-fun Location?.display() = this?.let { "(lat=${it.lat}, lon=${it.lng})" } ?: "Unknown location"
+data class Ride(
+  val passengerId: String,
+  val passengerName: String,
+  val passengerLat: Double,
+  val passengerLng: Double,
+  val destAddress: String,
+  val destLat: Double,
+  val destLng: Double,
+)

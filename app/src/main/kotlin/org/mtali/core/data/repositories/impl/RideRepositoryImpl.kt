@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mtali.core.models
+package org.mtali.core.data.repositories.impl
 
-import kotlinx.serialization.Serializable
+import org.mtali.core.data.repositories.RideRepository
+import org.mtali.core.models.Ride
+import org.mtali.core.models.ServiceResult
+import org.mtali.core.utils.newUUID
+import timber.log.Timber
+import javax.inject.Inject
 
-@Serializable
-data class Location(val lat: Double, val lng: Double)
-
-fun Location?.display() = this?.let { "(lat=${it.lat}, lon=${it.lng})" } ?: "Unknown location"
+class RideRepositoryImpl @Inject constructor() : RideRepository {
+  override suspend fun createRide(ride: Ride): ServiceResult<String> {
+    val channelId = newUUID()
+    Timber.tag("wakanda").d("Ride: $ride")
+    return ServiceResult.Value(channelId)
+  }
+}

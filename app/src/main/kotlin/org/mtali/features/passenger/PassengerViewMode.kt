@@ -27,17 +27,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
+import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
+import org.mtali.core.models.Ride
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class PassengerViewMode @Inject constructor(
   deviceRepository: DeviceRepository,
   private val googleRepository: GoogleRepository,
+  private val rideRepository: RideRepository,
 ) : ViewModel() {
 
   var toastHandler: ((ToastMessage) -> Unit)? = null
@@ -91,8 +93,28 @@ class PassengerViewMode @Inject constructor(
     }
   }
 
-  private fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
-    Timber.tag("wakanda").d("Ride to $destAddress \nfrom $currentLocation")
+  private fun clearSearch() {
+    _destinationQuery.update { "" }
+    _autoCompletePlaces.update { emptyList() }
+  }
+
+  private suspend fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
+    val ride = Ride(
+      passengerId = "",
+      passengerName = "",
+      passengerLat = currentLocation.lat,
+      passengerLng = currentLocation.lng,
+      destAddress = destAddress,
+      destLat = destLatLon.latitude,
+      destLng = destLatLon.longitude,
+    )
+    val result = rideRepository.createRide(ride)
+    when (result) {
+      is ServiceResult.Failure -> toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
+      is ServiceResult.Value -> {
+        clearSearch()
+      }
+    }
   }
 }
 
