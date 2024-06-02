@@ -27,6 +27,7 @@ maps-compose = "4.4.1"
 flexible-bottomsheet = "0.1.2"
 spotless = "6.21.0"
 play-location = "21.3.0"
+places = "3.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,6 +64,7 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-auth = { module = "com.google.firebase:firebase-auth-ktx" }
 # Maps
 maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = "maps-compose" }
+places = { group = "com.google.android.libraries.places", name = "places", version.ref = "places" }
 # Flexible BottomSheet
 flexible-bottomsheet = { module = "com.github.skydoves:flexible-bottomsheet-material3", version.ref = "flexible-bottomsheet" }
 # Location
