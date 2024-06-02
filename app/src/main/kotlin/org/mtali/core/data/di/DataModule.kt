@@ -42,7 +42,7 @@ abstract class DataModule {
 
   @Binds
   @Singleton
-  abstract fun bindsGoogleRepo(repository: GoogleRepositoryImpl): GoogleRepository
+  abstract fun bindsGoogleRepo(repo: GoogleRepositoryImpl): GoogleRepository
 
   companion object {
     @Provides
