@@ -39,4 +39,5 @@
   <string name="system_settings_are_preventing_location_updates">System settings are preventing location updates</string>
   <string name="location_must_be_enabled">This app requires device location to be accessible during rides.</string>
   <string name="unable_to_retrieve_coordinates_address">Unable to retrieve coordinates for selected address 😩</string>
+  <string name="failed_re_auth">Failed to re-authenticate 🤐</string>
 </resources>

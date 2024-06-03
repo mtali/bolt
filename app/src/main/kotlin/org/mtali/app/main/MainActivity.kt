@@ -48,6 +48,7 @@ import org.mtali.app.ui.BoltApp
 import org.mtali.app.ui.rememberBoltAppState
 import org.mtali.core.designsystem.BoltTheme
 import org.mtali.core.utils.areLocationPermissionGranted
+import org.mtali.core.utils.handleToast
 import timber.log.Timber
 
 private const val LOCATION_REQUEST_INTERVAL = 10000L
@@ -65,6 +66,8 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
 
     fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+    viewModel.toastHandle = { handleToast(it) }
 
     var uiState: MainUiState by mutableStateOf(MainUiState.Loading)
     lifecycleScope.launch {

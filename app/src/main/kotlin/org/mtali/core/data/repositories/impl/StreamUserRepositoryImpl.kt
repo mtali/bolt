@@ -16,9 +16,13 @@
 package org.mtali.core.data.repositories.impl
 
 import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.events.ConnectedEvent
 import io.getstream.chat.android.models.User
 import io.getstream.result.Result
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.dispatcher.BoltDispatchers.IO
@@ -37,6 +41,16 @@ class StreamUserRepositoryImpl @Inject constructor(
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
   private val client: ChatClient,
 ) : StreamUserRepository {
+
+  override val streamUser: Flow<BoltUser?> = callbackFlow {
+    val subscription = client.subscribeFor(ConnectedEvent::class.java) { event ->
+      trySend(client.getCurrentUser()?.let { BoltUser(userId = it.id) })
+    }
+    trySend(null)
+    awaitClose {
+      subscription.dispose()
+    }
+  }
 
   /**
    * Make sure to update Roles & Permission to allow user to update their roles

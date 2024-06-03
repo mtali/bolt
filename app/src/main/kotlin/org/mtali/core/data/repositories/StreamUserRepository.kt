@@ -15,10 +15,12 @@
  */
 package org.mtali.core.data.repositories
 
+import kotlinx.coroutines.flow.Flow
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 
 interface StreamUserRepository {
+  val streamUser: Flow<BoltUser?>
   suspend fun initSteamUser(user: BoltUser): ServiceResult<BoltUser>
   suspend fun getStreamUserById(userId: String): ServiceResult<BoltUser?>
   suspend fun logout()

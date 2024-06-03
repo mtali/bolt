@@ -20,7 +20,6 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
-import io.getstream.chat.android.client.ChatClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -40,22 +39,11 @@ import javax.inject.Inject
 class FirebaseFirebaseAuthRepositoryImpl @Inject constructor(
   @Dispatcher(IO) val ioDispatcher: CoroutineDispatcher,
   private val auth: FirebaseAuth,
-  private val chatClient: ChatClient,
 ) : FirebaseAuthRepository {
 
-  /**
-   * Since we use firebase and stream we need to make sure both
-   * systems are in sync
-   */
   override val currentUser: Flow<BoltUser?> = callbackFlow {
     val listener = FirebaseAuth.AuthStateListener { auth ->
-      val streamUser = chatClient.getCurrentUser()
-      val boltUser = if (streamUser != null) {
-        auth.currentUser?.let { BoltUser(userId = it.uid) }
-      } else {
-        null
-      }
-      trySend(boltUser)
+      trySend(auth.currentUser?.let { BoltUser(userId = it.uid) })
     }
     auth.addAuthStateListener(listener)
     awaitClose { auth.removeAuthStateListener(listener) }

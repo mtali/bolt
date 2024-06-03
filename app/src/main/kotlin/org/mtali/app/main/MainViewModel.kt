@@ -20,29 +20,35 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.FirebaseAuthRepository
+import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.models.Location
+import org.mtali.core.models.ServiceResult
+import org.mtali.core.models.ToastMessage
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
   private val firebaseAuthRepository: FirebaseAuthRepository,
+  private val streamUserRepository: StreamUserRepository,
   private val deviceRepository: DeviceRepository,
 ) : ViewModel() {
 
-  val uiState = firebaseAuthRepository.currentUser
-    .map { user ->
-      MainUiState.Success(isLoggedIn = user != null)
-    }
-    .stateIn(
-      scope = viewModelScope,
-      started = SharingStarted.WhileSubscribed(5_000),
-      initialValue = MainUiState.Loading,
-    )
+  val uiState = combine(firebaseAuthRepository.currentUser, streamUserRepository.streamUser) { firebase, stream ->
+    if (firebase != null && stream == null) reAuthStream(firebase.userId)
+    MainUiState.Success(isLoggedIn = firebase != null && stream != null)
+  }.stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5_000),
+    initialValue = MainUiState.Loading,
+  )
+
+  var toastHandle: ((ToastMessage) -> Unit)? = null
 
   fun onLogout() {
     firebaseAuthRepository.logout()
@@ -50,6 +56,15 @@ class MainViewModel @Inject constructor(
 
   fun updatePassengerLocation(latLng: LatLng) {
     viewModelScope.launch { deviceRepository.updateLocation(latLng.asLocation()) }
+  }
+
+  private suspend fun reAuthStream(userId: String) {
+    Timber.tag("wakanda").d("Reauth init")
+    val result = streamUserRepository.getStreamUserById(userId)
+    Timber.tag("wakanda").d("Reauth result = $result")
+    if (result is ServiceResult.Failure || (result is ServiceResult.Value && result.value == null)) {
+      toastHandle?.invoke(ToastMessage.FAILED_TO_REAUTH)
+    }
   }
 }
 

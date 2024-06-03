@@ -58,6 +58,7 @@ fun Context.handleToast(code: ToastMessage) {
     ToastMessage.ACCOUNT_EXISTS -> R.string.account_exists
     ToastMessage.ACCOUNT_CREATED -> R.string.account_created
     ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES -> R.string.unable_to_retrieve_coordinates_user
+    ToastMessage.FAILED_TO_REAUTH -> R.string.failed_re_auth
   }
   Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }
