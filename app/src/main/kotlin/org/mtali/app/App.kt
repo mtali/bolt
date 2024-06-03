@@ -18,6 +18,9 @@ package org.mtali.app
 import android.app.Application
 import com.google.android.libraries.places.api.Places
 import dagger.hilt.android.HiltAndroidApp
+import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.logger.ChatLogLevel
+import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
 import org.mtali.BuildConfig
 import timber.log.Timber
 
@@ -25,11 +28,23 @@ import timber.log.Timber
 class App : Application() {
   override fun onCreate() {
     super.onCreate()
-    initializePlaces()
-    if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+    initPlaces()
+    initStream()
+    if (isDebug()) Timber.plant(Timber.DebugTree())
   }
 
-  private fun initializePlaces() {
+  private fun initPlaces() {
     Places.initialize(this, BuildConfig.MAPS_API_KEY)
   }
+
+  private fun initStream() {
+    val logLevel = if (org.mtali.core.utils.isDebug()) ChatLogLevel.ALL else ChatLogLevel.ERROR
+    val offlinePlugin = StreamOfflinePluginFactory(appContext = this)
+    ChatClient.Builder(BuildConfig.STREAM_KEY, this)
+      .withPlugins(offlinePlugin)
+      .logLevel(logLevel)
+      .build()
+  }
+
+  private fun isDebug() = BuildConfig.DEBUG
 }

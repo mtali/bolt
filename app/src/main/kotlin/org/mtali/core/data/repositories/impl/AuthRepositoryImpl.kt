@@ -20,6 +20,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import io.getstream.chat.android.client.ChatClient
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -39,21 +40,32 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
   @Dispatcher(IO) val ioDispatcher: CoroutineDispatcher,
   private val auth: FirebaseAuth,
+  private val chatClient: ChatClient,
 ) : AuthRepository {
 
-  override val currentUser: Flow<BoltUser?>
-    get() = callbackFlow {
-      val listener = FirebaseAuth.AuthStateListener { auth ->
-        this.trySend(auth.currentUser?.let { BoltUser(userId = it.uid) })
+  /**
+   * Since we use firebase and stream we need to make sure both
+   * systems are in sync
+   */
+  override val currentUser: Flow<BoltUser?> = callbackFlow {
+    val listener = FirebaseAuth.AuthStateListener { auth ->
+      val streamUser = chatClient.getCurrentUser()
+      val boltUser = if (streamUser != null) {
+        auth.currentUser?.let { BoltUser(userId = it.uid) }
+      } else {
+        null
       }
-      auth.addAuthStateListener(listener)
-      awaitClose { auth.removeAuthStateListener(listener) }
+      trySend(boltUser)
     }
+    auth.addAuthStateListener(listener)
+    awaitClose { auth.removeAuthStateListener(listener) }
+  }
 
   override suspend fun signup(email: String, password: String): ServiceResult<SignupResult> =
     withContext(ioDispatcher) {
       try {
         val attempt = auth.createUserWithEmailAndPassword(email, password).await()
+        auth.signOut() // Prevent automatic user sign-in
         if (attempt.user != null) {
           ServiceResult.Value(SignupResult.Success(attempt.user!!.uid))
         } else {

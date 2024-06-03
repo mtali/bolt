@@ -128,6 +128,11 @@ dependencies {
   // Flexible BottomSheet
   implementation(libs.flexible.bottomsheet)
 
+  // Stream
+  implementation(libs.stream)
+  implementation(libs.stream.client)
+  implementation(libs.stream.offline)
+
   // Testing
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)

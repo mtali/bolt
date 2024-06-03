@@ -15,6 +15,7 @@
  */
 package org.mtali.core.data.di
 
+import android.content.Context
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
@@ -22,15 +23,19 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.getstream.chat.android.client.ChatClient
 import org.mtali.core.data.repositories.AuthRepository
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
+import org.mtali.core.data.repositories.UsersRepository
 import org.mtali.core.data.repositories.impl.AuthRepositoryImpl
 import org.mtali.core.data.repositories.impl.DeviceRepositoryImpl
 import org.mtali.core.data.repositories.impl.GoogleRepositoryImpl
 import org.mtali.core.data.repositories.impl.RideRepositoryImpl
+import org.mtali.core.data.repositories.impl.UsersRepositoryImpl
 import javax.inject.Singleton
 
 @Module
@@ -47,10 +52,17 @@ abstract class DataModule {
   abstract fun bindsGoogleRepo(repo: GoogleRepositoryImpl): GoogleRepository
 
   @Binds
+  @Singleton
+  abstract fun bindUsersRepo(repo: UsersRepositoryImpl): UsersRepository
+
+  @Binds
   abstract fun rideRepo(repository: RideRepositoryImpl): RideRepository
 
   companion object {
     @Provides
     fun providesFirebaseAuth(): FirebaseAuth = Firebase.auth
+
+    @Provides
+    fun providesStreamClient(@ApplicationContext context: Context): ChatClient = ChatClient.instance()
   }
 }

@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.mtali.BuildConfig
 import org.mtali.R
 import org.mtali.core.models.ToastMessage
 import java.util.UUID
@@ -65,3 +66,5 @@ fun String.capitalizeWords(): String =
   split(" ").joinToString(" ") { it.replaceFirstChar { char -> char.uppercaseChar() } }
 
 fun newUUID() = "${UUID.randomUUID()}"
+
+fun isDebug() = BuildConfig.DEBUG
