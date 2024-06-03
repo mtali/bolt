@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import org.mtali.core.data.repositories.AuthRepository
+import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.LoginResult
 import org.mtali.core.data.repositories.SignupResult
 import org.mtali.core.dispatcher.BoltDispatchers.IO
@@ -37,11 +37,11 @@ import org.mtali.core.models.ServiceResult
 import timber.log.Timber
 import javax.inject.Inject
 
-class FirebaseAuthRepositoryImpl @Inject constructor(
+class FirebaseFirebaseAuthRepositoryImpl @Inject constructor(
   @Dispatcher(IO) val ioDispatcher: CoroutineDispatcher,
   private val auth: FirebaseAuth,
   private val chatClient: ChatClient,
-) : AuthRepository {
+) : FirebaseAuthRepository {
 
   /**
    * Since we use firebase and stream we need to make sure both

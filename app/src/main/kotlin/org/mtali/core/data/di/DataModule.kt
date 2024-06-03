@@ -26,13 +26,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.getstream.chat.android.client.ChatClient
-import org.mtali.core.data.repositories.AuthRepository
 import org.mtali.core.data.repositories.DeviceRepository
+import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.data.repositories.impl.DeviceRepositoryImpl
-import org.mtali.core.data.repositories.impl.FirebaseAuthRepositoryImpl
+import org.mtali.core.data.repositories.impl.FirebaseFirebaseAuthRepositoryImpl
 import org.mtali.core.data.repositories.impl.GoogleRepositoryImpl
 import org.mtali.core.data.repositories.impl.RideRepositoryImpl
 import org.mtali.core.data.repositories.impl.StreamUserRepositoryImpl
@@ -42,7 +42,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
   @Binds
-  abstract fun bindsAuthRepo(repo: FirebaseAuthRepositoryImpl): AuthRepository
+  abstract fun bindsAuthRepo(repo: FirebaseFirebaseAuthRepositoryImpl): FirebaseAuthRepository
 
   @Binds
   abstract fun bindsDeviceRepo(repo: DeviceRepositoryImpl): DeviceRepository

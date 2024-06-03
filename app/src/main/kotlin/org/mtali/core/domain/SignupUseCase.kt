@@ -15,7 +15,7 @@
  */
 package org.mtali.core.domain
 
-import org.mtali.core.data.repositories.AuthRepository
+import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.SignupResult
 import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.models.BoltUser
@@ -23,7 +23,7 @@ import org.mtali.core.models.ServiceResult
 import javax.inject.Inject
 
 class SignupUseCase @Inject constructor(
-  private val authRepository: AuthRepository,
+  private val firebaseAuthRepository: FirebaseAuthRepository,
   private val streamUserRepository: StreamUserRepository,
 ) {
   suspend operator fun invoke(
@@ -31,7 +31,7 @@ class SignupUseCase @Inject constructor(
     email: String,
     password: String,
   ): ServiceResult<SignupResult> {
-    return when (val authAttempt = authRepository.signup(email, password)) {
+    return when (val authAttempt = firebaseAuthRepository.signup(email, password)) {
       is ServiceResult.Failure -> authAttempt
       is ServiceResult.Value -> {
         when (authAttempt.value) {

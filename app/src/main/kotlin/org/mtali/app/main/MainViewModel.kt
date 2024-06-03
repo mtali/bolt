@@ -23,18 +23,18 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.mtali.core.data.repositories.AuthRepository
 import org.mtali.core.data.repositories.DeviceRepository
+import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.models.Location
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-  private val authRepository: AuthRepository,
+  private val firebaseAuthRepository: FirebaseAuthRepository,
   private val deviceRepository: DeviceRepository,
 ) : ViewModel() {
 
-  val uiState = authRepository.currentUser
+  val uiState = firebaseAuthRepository.currentUser
     .map { user ->
       MainUiState.Success(isLoggedIn = user != null)
     }
@@ -45,7 +45,7 @@ class MainViewModel @Inject constructor(
     )
 
   fun onLogout() {
-    authRepository.logout()
+    firebaseAuthRepository.logout()
   }
 
   fun updatePassengerLocation(latLng: LatLng) {

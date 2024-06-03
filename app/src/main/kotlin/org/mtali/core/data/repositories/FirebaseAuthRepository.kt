@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 
-interface AuthRepository {
+interface FirebaseAuthRepository {
   val currentUser: Flow<BoltUser?>
 
   suspend fun signup(email: String, password: String): ServiceResult<SignupResult>
