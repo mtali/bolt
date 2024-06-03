@@ -26,10 +26,10 @@ import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.StreamUserRepository
+import org.mtali.core.domain.LogoutUseCase
 import org.mtali.core.models.Location
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +37,7 @@ class MainViewModel @Inject constructor(
   private val firebaseAuthRepository: FirebaseAuthRepository,
   private val streamUserRepository: StreamUserRepository,
   private val deviceRepository: DeviceRepository,
+  private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
   val uiState = combine(firebaseAuthRepository.currentUser, streamUserRepository.streamUser) { firebase, stream ->
@@ -59,11 +60,10 @@ class MainViewModel @Inject constructor(
   }
 
   private suspend fun reAuthStream(userId: String) {
-    Timber.tag("wakanda").d("Reauth init")
     val result = streamUserRepository.getStreamUserById(userId)
-    Timber.tag("wakanda").d("Reauth result = $result")
     if (result is ServiceResult.Failure || (result is ServiceResult.Value && result.value == null)) {
       toastHandle?.invoke(ToastMessage.FAILED_TO_REAUTH)
+      logoutUseCase()
     }
   }
 }

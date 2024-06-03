@@ -37,6 +37,8 @@ import org.mtali.core.models.UserType
 import timber.log.Timber
 import javax.inject.Inject
 
+private const val CONNECT_TIMEOUT = 10_000L
+
 class StreamUserRepositoryImpl @Inject constructor(
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
   private val client: ChatClient,
@@ -69,7 +71,7 @@ class StreamUserRepositoryImpl @Inject constructor(
     )
     val token = client.devToken(user.userId)
     try {
-      val result = client.connectUser(streamUser, token).await()
+      val result = client.connectUser(streamUser, token, CONNECT_TIMEOUT).await()
       if (result.isSuccess) {
         ServiceResult.Value(user)
       } else {
@@ -112,7 +114,7 @@ class StreamUserRepositoryImpl @Inject constructor(
         Timber.e(message)
         ServiceResult.Failure(Exception(message))
       }
-    } else {
+    } else { // No user at all
       val streamUser = User(
         id = userId,
         extraData = mapOf(
@@ -122,7 +124,7 @@ class StreamUserRepositoryImpl @Inject constructor(
       )
 
       val devToken = client.devToken(userId)
-      val getUserResult = client.connectUser(streamUser, devToken).await()
+      val getUserResult = client.connectUser(streamUser, devToken, CONNECT_TIMEOUT).await()
       if (getUserResult.isSuccess) {
         getStreamUserById(userId)
       } else {
