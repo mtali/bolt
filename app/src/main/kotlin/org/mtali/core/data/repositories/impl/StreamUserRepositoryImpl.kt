@@ -53,7 +53,8 @@ class StreamUserRepositoryImpl @Inject constructor(
   }
 
   /**
-   * Make sure to update Roles & Permission to allow user to update their roles
+   * Make sure to update Roles & Permission on the Dashboard
+   * for this to work (by default users can't update their roles)
    */
   private suspend fun roleToAdmin(userId: String): Result<User> {
     return client.partialUpdateUser(id = userId, mapOf(KEY_ROLE to "admin")).await()
