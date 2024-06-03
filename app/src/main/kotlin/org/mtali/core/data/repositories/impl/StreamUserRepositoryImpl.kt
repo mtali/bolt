@@ -37,7 +37,7 @@ import org.mtali.core.models.UserType
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val CONNECT_TIMEOUT = 10_000L
+private const val CONNECT_TIMEOUT = 5_000L
 
 class StreamUserRepositoryImpl @Inject constructor(
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
