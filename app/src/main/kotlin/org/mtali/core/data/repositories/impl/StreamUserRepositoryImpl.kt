@@ -118,6 +118,13 @@ class StreamUserRepositoryImpl @Inject constructor(
     }
   }
 
+  override suspend fun logout() = withContext(ioDispatcher) {
+    val result = client.disconnect(true).await()
+    if (result.isFailure) {
+      Timber.e("Failed to logout stream user. Message: ${result.errorOrNull()?.message}")
+    }
+  }
+
   private suspend fun disconnectUser(userId: String) {
     val user = client.getCurrentUser()
     if (user != null && userId == user.id) {

@@ -16,12 +16,17 @@
 package org.mtali.core.domain
 
 import org.mtali.core.data.repositories.FirebaseAuthRepository
+import org.mtali.core.data.repositories.StreamUserRepository
+import org.mtali.core.models.ServiceResult
 import javax.inject.Inject
 
 class LogoutUseCase @Inject constructor(
   private val firebaseAuthRepository: FirebaseAuthRepository,
+  private val streamUserRepository: StreamUserRepository,
 ) {
-  operator fun invoke() {
+  suspend operator fun invoke(): ServiceResult<Unit> {
     firebaseAuthRepository.logout()
+    streamUserRepository.logout()
+    return ServiceResult.Value(Unit)
   }
 }

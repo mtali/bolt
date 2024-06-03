@@ -21,4 +21,5 @@ import org.mtali.core.models.ServiceResult
 interface StreamUserRepository {
   suspend fun initSteamUser(user: BoltUser): ServiceResult<BoltUser>
   suspend fun getStreamUserById(userId: String): ServiceResult<BoltUser?>
+  suspend fun logout()
 }
