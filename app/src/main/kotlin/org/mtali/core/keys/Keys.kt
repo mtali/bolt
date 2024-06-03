@@ -17,3 +17,4 @@ package org.mtali.core.keys
 
 const val KEY_STATUS = "status"
 const val KEY_TYPE = "key_type"
+const val KEY_ROLE = "role"

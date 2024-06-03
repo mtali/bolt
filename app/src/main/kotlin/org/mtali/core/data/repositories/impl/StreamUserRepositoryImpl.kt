@@ -17,21 +17,33 @@ package org.mtali.core.data.repositories.impl
 
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.models.User
+import io.getstream.result.Result
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.dispatcher.BoltDispatchers.IO
 import org.mtali.core.dispatcher.Dispatcher
+import org.mtali.core.keys.KEY_ROLE
 import org.mtali.core.keys.KEY_STATUS
 import org.mtali.core.keys.KEY_TYPE
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
+import org.mtali.core.models.UserStatus
+import org.mtali.core.models.UserType
+import timber.log.Timber
 import javax.inject.Inject
 
 class StreamUserRepositoryImpl @Inject constructor(
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
   private val client: ChatClient,
 ) : StreamUserRepository {
+
+  /**
+   * Make sure to update Roles & Permission to allow user to update their roles
+   */
+  private suspend fun roleToAdmin(userId: String): Result<User> {
+    return client.partialUpdateUser(id = userId, mapOf(KEY_ROLE to "admin")).await()
+  }
 
   override suspend fun initSteamUser(user: BoltUser): ServiceResult<BoltUser> = withContext(ioDispatcher) {
     disconnectUser(userId = user.userId)
@@ -50,6 +62,59 @@ class StreamUserRepositoryImpl @Inject constructor(
       }
     } catch (e: Exception) {
       ServiceResult.Failure(exception = e)
+    }
+  }
+
+  override suspend fun getStreamUserById(userId: String): ServiceResult<BoltUser?> = withContext(ioDispatcher) {
+    val currentUser = client.getCurrentUser()
+    if (currentUser != null && currentUser.id == userId) { // User is logged-in
+      val extraData = currentUser.extraData
+      val type: String? = extraData[KEY_TYPE] as String?
+      val status: String? = extraData[KEY_STATUS] as String?
+
+      if (currentUser.role != "admin") {
+        roleToAdmin(currentUser.id)
+      }
+
+      ServiceResult.Value(
+        BoltUser(
+          userId = userId,
+          username = currentUser.name,
+          createdAt = currentUser.createdAt.toString(),
+          updatedAt = currentUser.updatedAt.toString(),
+          status = status ?: "",
+          type = type ?: "",
+        ),
+      )
+    } else if (currentUser != null) { // Different user is logged-in
+      val streamUser = User(id = userId)
+      val devToken = client.devToken(userId)
+      val getUserResult = client.switchUser(user = streamUser, devToken).await()
+      if (getUserResult.isSuccess) {
+        getStreamUserById(userId)
+      } else {
+        val message = getUserResult.errorOrNull()?.message ?: "Stream error to switch user"
+        Timber.e(message)
+        ServiceResult.Failure(Exception(message))
+      }
+    } else {
+      val streamUser = User(
+        id = userId,
+        extraData = mapOf(
+          KEY_TYPE to UserType.PASSENGER.value,
+          KEY_STATUS to UserStatus.INACTIVE.value,
+        ),
+      )
+
+      val devToken = client.devToken(userId)
+      val getUserResult = client.connectUser(streamUser, devToken).await()
+      if (getUserResult.isSuccess) {
+        getStreamUserById(userId)
+      } else {
+        val message = getUserResult.errorOrNull()?.message ?: "Stream error connecting user"
+        Timber.e(message)
+        ServiceResult.Failure(Exception(message))
+      }
     }
   }
 

@@ -17,13 +17,38 @@ package org.mtali.core.domain
 
 import org.mtali.core.data.repositories.AuthRepository
 import org.mtali.core.data.repositories.LoginResult
+import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.models.ServiceResult
 import javax.inject.Inject
 
 class LoginUseCase @Inject constructor(
   private val authRepository: AuthRepository,
+  private val streamUserRepository: StreamUserRepository,
 ) {
   suspend operator fun invoke(email: String, password: String): ServiceResult<LoginResult> {
-    return authRepository.login(email, password)
+    return when (val attempt = authRepository.login(email, password)) {
+      is ServiceResult.Failure -> attempt
+      is ServiceResult.Value -> {
+        when (attempt.value) {
+          is LoginResult.Success -> getStreamUser(attempt.value.user.userId)
+          else -> attempt
+        }
+      }
+    }
+  }
+
+  private suspend fun getStreamUser(uid: String): ServiceResult<LoginResult> {
+    return streamUserRepository.getStreamUserById(uid).let { result ->
+      when (result) {
+        is ServiceResult.Failure -> ServiceResult.Failure(result.exception)
+        is ServiceResult.Value -> {
+          if (result.value == null) {
+            ServiceResult.Failure(Exception("Null user when login"))
+          } else {
+            ServiceResult.Value(LoginResult.Success(result.value))
+          }
+        }
+      }
+    }
   }
 }
