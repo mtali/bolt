@@ -31,8 +31,8 @@ import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.data.repositories.StreamUserRepository
-import org.mtali.core.data.repositories.impl.AuthRepositoryImpl
 import org.mtali.core.data.repositories.impl.DeviceRepositoryImpl
+import org.mtali.core.data.repositories.impl.FirebaseAuthRepositoryImpl
 import org.mtali.core.data.repositories.impl.GoogleRepositoryImpl
 import org.mtali.core.data.repositories.impl.RideRepositoryImpl
 import org.mtali.core.data.repositories.impl.StreamUserRepositoryImpl
@@ -42,7 +42,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
   @Binds
-  abstract fun bindsAuthRepo(repo: AuthRepositoryImpl): AuthRepository
+  abstract fun bindsAuthRepo(repo: FirebaseAuthRepositoryImpl): AuthRepository
 
   @Binds
   abstract fun bindsDeviceRepo(repo: DeviceRepositoryImpl): DeviceRepository

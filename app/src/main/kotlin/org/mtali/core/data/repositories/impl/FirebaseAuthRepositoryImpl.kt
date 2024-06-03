@@ -37,7 +37,7 @@ import org.mtali.core.models.ServiceResult
 import timber.log.Timber
 import javax.inject.Inject
 
-class AuthRepositoryImpl @Inject constructor(
+class FirebaseAuthRepositoryImpl @Inject constructor(
   @Dispatcher(IO) val ioDispatcher: CoroutineDispatcher,
   private val auth: FirebaseAuth,
   private val chatClient: ChatClient,
