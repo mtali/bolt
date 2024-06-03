@@ -18,6 +18,6 @@ package org.mtali.core.data.repositories
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 
-interface UsersRepository {
+interface StreamUserRepository {
   suspend fun initSteamUser(user: BoltUser): ServiceResult<BoltUser>
 }

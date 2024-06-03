@@ -19,7 +19,7 @@ import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.models.User
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.mtali.core.data.repositories.UsersRepository
+import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.dispatcher.BoltDispatchers.IO
 import org.mtali.core.dispatcher.Dispatcher
 import org.mtali.core.keys.KEY_STATUS
@@ -28,10 +28,10 @@ import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 import javax.inject.Inject
 
-class UsersRepositoryImpl @Inject constructor(
+class StreamUserRepositoryImpl @Inject constructor(
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
   private val client: ChatClient,
-) : UsersRepository {
+) : StreamUserRepository {
 
   override suspend fun initSteamUser(user: BoltUser): ServiceResult<BoltUser> = withContext(ioDispatcher) {
     disconnectUser(userId = user.userId)

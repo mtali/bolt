@@ -17,14 +17,14 @@ package org.mtali.core.domain
 
 import org.mtali.core.data.repositories.AuthRepository
 import org.mtali.core.data.repositories.SignupResult
-import org.mtali.core.data.repositories.UsersRepository
+import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 import javax.inject.Inject
 
 class SignupUseCase @Inject constructor(
   private val authRepository: AuthRepository,
-  private val usersRepository: UsersRepository,
+  private val streamUserRepository: StreamUserRepository,
 ) {
   suspend operator fun invoke(
     name: String,
@@ -43,7 +43,7 @@ class SignupUseCase @Inject constructor(
   }
 
   private suspend fun initStreamUser(username: String, uid: String): ServiceResult<SignupResult> {
-    return usersRepository.initSteamUser(BoltUser(userId = uid, username = username)).let { result ->
+    return streamUserRepository.initSteamUser(BoltUser(userId = uid, username = username)).let { result ->
       when (result) {
         is ServiceResult.Failure -> ServiceResult.Failure(result.exception)
         is ServiceResult.Value -> ServiceResult.Value(SignupResult.Success(uid))
