@@ -15,7 +15,7 @@
  */
 package org.mtali.core.models
 
-data class Ride(
+data class CreateRide(
   val passengerId: String,
   val passengerName: String,
   val passengerLat: Double,

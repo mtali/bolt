@@ -15,9 +15,9 @@
  */
 package org.mtali.core.data.repositories
 
-import org.mtali.core.models.Ride
+import org.mtali.core.models.CreateRide
 import org.mtali.core.models.ServiceResult
 
 interface RideRepository {
-  suspend fun createRide(ride: Ride): ServiceResult<String>
+  suspend fun createRide(createRide: CreateRide): ServiceResult<String>
 }

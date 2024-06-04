@@ -31,9 +31,9 @@ import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.domain.GetUserUseCase
 import org.mtali.core.domain.LogoutUseCase
 import org.mtali.core.models.BoltUser
+import org.mtali.core.models.CreateRide
 import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
-import org.mtali.core.models.Ride
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import timber.log.Timber
@@ -128,7 +128,7 @@ class PassengerViewMode @Inject constructor(
 
   private suspend fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
     val passenger = checkNotNull(_passenger.value)
-    val ride = Ride(
+    val createRide = CreateRide(
       passengerId = passenger.userId,
       passengerName = passenger.username,
       passengerLat = currentLocation.lat,
@@ -137,7 +137,7 @@ class PassengerViewMode @Inject constructor(
       destLat = destLatLon.latitude,
       destLng = destLatLon.longitude,
     )
-    val result = rideRepository.createRide(ride)
+    val result = rideRepository.createRide(createRide)
     when (result) {
       is ServiceResult.Failure -> toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
       is ServiceResult.Value -> {

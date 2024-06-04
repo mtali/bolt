@@ -26,7 +26,7 @@ import org.mtali.core.keys.KEY_PASSENGER_LON
 import org.mtali.core.keys.KEY_PASSENGER_NAME
 import org.mtali.core.keys.KEY_STATUS
 import org.mtali.core.keys.STREAM_CHANNEL_TYPE_LIVESTREAM
-import org.mtali.core.models.Ride
+import org.mtali.core.models.CreateRide
 import org.mtali.core.models.RideStatus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.utils.newUUID
@@ -36,21 +36,21 @@ import javax.inject.Inject
 class RideRepositoryImpl @Inject constructor(
   private val client: ChatClient,
 ) : RideRepository {
-  override suspend fun createRide(ride: Ride): ServiceResult<String> {
+  override suspend fun createRide(createRide: CreateRide): ServiceResult<String> {
     val channelId = newUUID()
     val result = client.createChannel(
       channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
       channelId = channelId,
-      memberIds = listOf(ride.passengerId),
+      memberIds = listOf(createRide.passengerId),
       extraData = mapOf(
         KEY_STATUS to RideStatus.SEARCHING_FOR_DRIVER,
-        KEY_PASSENGER_ID to ride.passengerId,
-        KEY_PASSENGER_NAME to ride.passengerName,
-        KEY_PASSENGER_LAT to ride.passengerLat,
-        KEY_PASSENGER_LON to ride.passengerLng,
-        KEY_DEST_ADDRESS to ride.destAddress,
-        KEY_DEST_LAT to ride.destLat,
-        KEY_DEST_LON to ride.destLng,
+        KEY_PASSENGER_ID to createRide.passengerId,
+        KEY_PASSENGER_NAME to createRide.passengerName,
+        KEY_PASSENGER_LAT to createRide.passengerLat,
+        KEY_PASSENGER_LON to createRide.passengerLng,
+        KEY_DEST_ADDRESS to createRide.destAddress,
+        KEY_DEST_LAT to createRide.destLat,
+        KEY_DEST_LON to createRide.destLng,
       ),
     ).await()
     val cid = result.getOrNull()?.cid
