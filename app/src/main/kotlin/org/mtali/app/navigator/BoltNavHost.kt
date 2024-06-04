@@ -33,8 +33,8 @@ fun BoltNavHost(
   modifier: Modifier = Modifier,
   startDestination: String,
   appState: BoltAppState,
-  onLogout: () -> Unit,
   locationPermissionGranted: Boolean,
+  onClickDrawerMenu: () -> Unit,
 ) {
   val navController = appState.navController
 
@@ -52,7 +52,7 @@ fun BoltNavHost(
 
     driverScreen(locationPermissionGranted = locationPermissionGranted)
 
-    passengerScreen(onLogout = onLogout, locationPermissionGranted = locationPermissionGranted)
+    passengerScreen(onClickDrawerMenu = onClickDrawerMenu, locationPermissionGranted = locationPermissionGranted)
   }
 }
 

@@ -27,8 +27,14 @@ fun NavController.navigateToPassenger(navOptions: NavOptions? = null) {
   navigate(passengerRoute, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.passengerScreen(onLogout: () -> Unit, locationPermissionGranted: Boolean) {
+fun NavGraphBuilder.passengerScreen(
+  locationPermissionGranted: Boolean,
+  onClickDrawerMenu: () -> Unit,
+) {
   composable(passengerRoute) {
-    PassengerRoute(onLogout = onLogout, locationPermissionGranted = locationPermissionGranted)
+    PassengerRoute(
+      locationPermissionGranted = locationPermissionGranted,
+      onClickDrawerMenu = onClickDrawerMenu,
+    )
   }
 }

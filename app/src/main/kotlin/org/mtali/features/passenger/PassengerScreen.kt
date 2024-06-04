@@ -78,6 +78,7 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
 import org.mtali.R
+import org.mtali.core.designsystem.components.DrawerMenu
 import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
@@ -87,8 +88,8 @@ import org.mtali.core.utils.handleToast
 @Composable
 fun PassengerRoute(
   viewModel: PassengerViewMode = hiltViewModel(),
-  onLogout: () -> Unit,
   locationPermissionGranted: Boolean,
+  onClickDrawerMenu: () -> Unit,
 ) {
   val context = LocalContext.current
   val destinationQuery by viewModel.destinationQuery.collectAsStateWithLifecycle()
@@ -97,13 +98,13 @@ fun PassengerRoute(
   viewModel.toastHandler = { context.handleToast(it) }
 
   PassengerScreen(
-    onLogout = onLogout,
     onMapLoaded = viewModel::onMapLoaded,
     locationPermissionGranted = locationPermissionGranted,
     destinationQuery = destinationQuery,
     onDestinationQueryChange = viewModel::onDestinationQueryChange,
     autoCompletePlaces = autoCompletePlaces,
     onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
+    onClickDrawerMenu = onClickDrawerMenu,
   )
 }
 
@@ -112,13 +113,13 @@ private val DEFAULT_CORNER = 10.dp
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun PassengerScreen(
-  onLogout: () -> Unit,
   onMapLoaded: () -> Unit,
   locationPermissionGranted: Boolean,
   destinationQuery: String,
   onDestinationQueryChange: (String) -> Unit,
   autoCompletePlaces: List<PlacesAutoComplete>,
   onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
+  onClickDrawerMenu: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true)
@@ -155,6 +156,14 @@ private fun PassengerScreen(
     ) {
       Map(onMapLoaded = onMapLoaded, locationPermissionGranted = locationPermissionGranted)
     }
+
+    DrawerMenu(
+      modifier = Modifier
+        .align(Alignment.TopStart)
+        .padding(16.dp),
+      visible = !sheetExpanded,
+      onClick = onClickDrawerMenu,
+    )
   }
 }
 

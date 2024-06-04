@@ -28,24 +28,34 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -121,57 +131,72 @@ fun BoltApp(
     }
   })
 
-  Scaffold(
-    snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-  ) { innerPadding ->
-    Column(
-      Modifier
-        .fillMaxSize()
-        .padding(innerPadding)
-        .windowInsetsPadding(
-          WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Horizontal,
+  val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+  ModalNavigationDrawer(
+    drawerState = drawerState,
+    gesturesEnabled = drawerState.isOpen,
+    drawerContent = {
+      DrawerContent(drawerState = drawerState, onLogout = onLogout)
+    },
+  ) {
+    Scaffold(
+      snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+    ) { innerPadding ->
+      Column(
+        Modifier
+          .fillMaxSize()
+          .padding(innerPadding)
+          .windowInsetsPadding(
+            WindowInsets.safeDrawing.only(
+              WindowInsetsSides.Horizontal,
+            ),
           ),
-        ),
-    ) {
-      when (uiState) {
-        MainUiState.Loading -> {
-          LoadingPage()
-        }
+      ) {
+        when (uiState) {
+          MainUiState.Loading -> {
+            LoadingPage()
+          }
 
-        is MainUiState.Success -> {
-          BoltNavHost(
-            startDestination = if (uiState.isLoggedIn) passengerRoute else loginRoute,
-            appState = appState,
-            onLogout = onLogout,
-            locationPermissionGranted = isLocationPermissionGranted,
-          )
+          is MainUiState.Success -> {
+            BoltNavHost(
+              modifier = Modifier.fillMaxSize(),
+              startDestination = if (uiState.isLoggedIn) passengerRoute else loginRoute,
+              appState = appState,
+              locationPermissionGranted = isLocationPermissionGranted,
+              onClickDrawerMenu = {
+                appState.coroutineScope.launch {
+                  drawerState.open()
+                }
+              },
+            )
 
-          if (shouldShowPermissionRationale) {
-            LaunchedEffect(Unit) {
-              appState.coroutineScope.launch {
-                val userAction = snackbarHostState.showSnackbar(
-                  message = "Please authorize locations permission",
-                  actionLabel = "Approve",
-                  duration = SnackbarDuration.Indefinite,
-                  withDismissAction = false,
-                )
-                when (userAction) {
-                  SnackbarResult.Dismissed -> {
-                    shouldShowPermissionRationale = true
-                  }
+            if (shouldShowPermissionRationale) {
+              LaunchedEffect(Unit) {
+                appState.coroutineScope.launch {
+                  val userAction = snackbarHostState.showSnackbar(
+                    message = "Please authorize locations permission",
+                    actionLabel = "Approve",
+                    duration = SnackbarDuration.Indefinite,
+                    withDismissAction = false,
+                  )
+                  when (userAction) {
+                    SnackbarResult.Dismissed -> {
+                      shouldShowPermissionRationale = true
+                    }
 
-                  SnackbarResult.ActionPerformed -> {
-                    shouldShowPermissionRationale = false
-                    locationPermissionLauncher.launch(locationPermissions)
+                    SnackbarResult.ActionPerformed -> {
+                      shouldShowPermissionRationale = false
+                      locationPermissionLauncher.launch(locationPermissions)
+                    }
                   }
                 }
               }
             }
-          }
 
-          if (shouldDirectUserToSettings) {
-            context.openSettings()
+            if (shouldDirectUserToSettings) {
+              context.openSettings()
+            }
           }
         }
       }
@@ -191,5 +216,33 @@ private fun LoadingPage(modifier: Modifier = Modifier) {
     contentAlignment = Alignment.Center,
   ) {
     Text(text = stringResource(id = R.string.loading))
+  }
+}
+
+@Composable
+private fun DrawerContent(
+  modifier: Modifier = Modifier,
+  drawerState: DrawerState,
+  onLogout: () -> Unit,
+) {
+  val scope = rememberCoroutineScope()
+  ModalDrawerSheet(modifier = modifier) {
+    Text(
+      text = stringResource(id = R.string.app_name),
+      fontSize = 30.sp,
+      modifier = Modifier.padding(16.dp),
+    )
+
+    HorizontalDivider()
+
+    NavigationDrawerItem(
+      label = { Text(text = stringResource(id = R.string.logout)) },
+      selected = false,
+      onClick = {
+        scope.launch { drawerState.close() }.invokeOnCompletion {
+          onLogout()
+        }
+      },
+    )
   }
 }
