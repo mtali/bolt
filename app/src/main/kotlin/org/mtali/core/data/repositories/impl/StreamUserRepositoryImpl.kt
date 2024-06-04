@@ -46,12 +46,14 @@ class StreamUserRepositoryImpl @Inject constructor(
 
   override val streamUser: Flow<BoltUser?> = callbackFlow {
     val subscription = client.subscribeFor(ConnectedEvent::class.java) { event ->
-      trySend(client.getCurrentUser()?.let { BoltUser(userId = it.id) })
+      trySend(streamBolt())
     }
-    trySend(null)
-    awaitClose {
-      subscription.dispose()
-    }
+    trySend(streamBolt())
+    awaitClose { subscription.dispose() }
+  }
+
+  private fun streamBolt(): BoltUser? {
+    return client.getCurrentUser()?.let { BoltUser(userId = it.id) }
   }
 
   /**
