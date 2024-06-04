@@ -16,10 +16,32 @@
 package org.mtali.core.data.repositories.impl
 
 import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.api.models.QueryChannelsRequest
+import io.getstream.chat.android.client.channel.ChannelClient
+import io.getstream.chat.android.client.events.ChannelDeletedEvent
+import io.getstream.chat.android.client.events.ChannelUpdatedByUserEvent
+import io.getstream.chat.android.client.events.NewMessageEvent
+import io.getstream.chat.android.models.Channel
+import io.getstream.chat.android.models.Filters
+import io.getstream.chat.android.models.querysort.QuerySortByField
+import io.getstream.result.onErrorSuspend
+import io.getstream.result.onSuccessSuspend
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import org.mtali.core.data.repositories.RideRepository
+import org.mtali.core.dispatcher.BoltDispatchers.IO
+import org.mtali.core.dispatcher.Dispatcher
+import org.mtali.core.keys.FILTER_CREATED_AT
+import org.mtali.core.keys.FILTER_UPDATED_AT
 import org.mtali.core.keys.KEY_DEST_ADDRESS
 import org.mtali.core.keys.KEY_DEST_LAT
 import org.mtali.core.keys.KEY_DEST_LON
+import org.mtali.core.keys.KEY_DRIVER_ID
+import org.mtali.core.keys.KEY_DRIVER_LAT
+import org.mtali.core.keys.KEY_DRIVER_NAME
 import org.mtali.core.keys.KEY_PASSENGER_ID
 import org.mtali.core.keys.KEY_PASSENGER_LAT
 import org.mtali.core.keys.KEY_PASSENGER_LON
@@ -27,6 +49,7 @@ import org.mtali.core.keys.KEY_PASSENGER_NAME
 import org.mtali.core.keys.KEY_STATUS
 import org.mtali.core.keys.STREAM_CHANNEL_TYPE_LIVESTREAM
 import org.mtali.core.models.CreateRide
+import org.mtali.core.models.Ride
 import org.mtali.core.models.RideStatus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.utils.newUUID
@@ -34,8 +57,18 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class RideRepositoryImpl @Inject constructor(
+  @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
   private val client: ChatClient,
 ) : RideRepository {
+
+  private val _rideUpdates: MutableStateFlow<ServiceResult<Ride?>> = MutableStateFlow(ServiceResult.Value(null))
+
+  private val _openRides: MutableStateFlow<ServiceResult<List<Ride>>> = MutableStateFlow(ServiceResult.Value(emptyList()))
+
+  override fun rideFlow(): Flow<ServiceResult<Ride?>> = _rideUpdates
+
+  override fun openRides(): Flow<ServiceResult<List<Ride>>> = _openRides
+
   override suspend fun createRide(createRide: CreateRide): ServiceResult<String> {
     val channelId = newUUID()
     val result = client.createChannel(
@@ -54,11 +87,222 @@ class RideRepositoryImpl @Inject constructor(
       ),
     ).await()
     val cid = result.getOrNull()?.cid
-    Timber.tag("wakanda").d("Channel created: $cid")
     return if (cid != null) {
       ServiceResult.Value(cid)
     } else {
       ServiceResult.Failure(Exception(result.errorOrNull()?.message))
     }
   }
+
+  override suspend fun observeRideById(rideId: String): Unit = withContext(ioDispatcher) {
+    val channelClient = client.channel(cid = rideId)
+
+    val result = channelClient.addMembers(listOf(client.getCurrentUser()?.id ?: "")).await()
+
+    if (result.isSuccess) {
+      observeChannelEvents(channelClient)
+
+      result.onSuccessSuspend { channel ->
+        _rideUpdates.emit(ServiceResult.Value(streamChannelToRide(channel)))
+      }
+
+      result.onErrorSuspend {
+        val error = result.errorOrNull()!!
+        _rideUpdates.emit(ServiceResult.Failure(Exception(error.message)))
+      }
+    } else {
+      val error = result.errorOrNull()!!
+      _rideUpdates.emit(ServiceResult.Failure(Exception(error.message)))
+    }
+  }
+
+  override suspend fun observeOpenRides() = withContext(ioDispatcher) {
+    val request = QueryChannelsRequest(
+      filter = Filters.and(Filters.eq(KEY_STATUS, RideStatus.SEARCHING_FOR_DRIVER.value)),
+      querySort = QuerySortByField.descByName(FILTER_CREATED_AT),
+      limit = 10,
+    )
+    val result = client.queryChannels(request).await()
+    if (result.isSuccess) {
+      _openRides.emit(ServiceResult.Value(result.getOrNull()!!.map { streamChannelToRide(it) }))
+    } else {
+      _openRides.emit(ServiceResult.Failure(Exception(result.errorOrNull()?.message)))
+    }
+  }
+
+  override suspend fun cancelRide(): ServiceResult<Unit> = withContext(ioDispatcher) {
+    val currentUserId = client.getCurrentUser()?.id ?: ""
+    val request = QueryChannelsRequest(
+      filter = Filters.`in`("members", currentUserId),
+      querySort = QuerySortByField.descByName(FILTER_UPDATED_AT),
+      limit = 1,
+    )
+    val result = client.queryChannels(request).await()
+    if (result.isSuccess) {
+      val channels = result.getOrNull() ?: emptyList()
+      if (channels.isEmpty()) {
+        ServiceResult.Failure(Exception("Failed tp retrieve channel for cancellation"))
+      } else {
+        val channelClient = client.channel(cid = channels.first().cid)
+        if (channelClient.hide().await().isSuccess) {
+          val deleteResult = channelClient.delete().await()
+          if (deleteResult.isSuccess) {
+            _rideUpdates.emit(ServiceResult.Value(null))
+            ServiceResult.Value(Unit)
+          } else {
+            ServiceResult.Failure(Exception(result.errorOrNull()?.message))
+          }
+        } else {
+          ServiceResult.Failure(Exception("Unable to hide channel"))
+        }
+      }
+    } else {
+      ServiceResult.Failure(Exception(result.errorOrNull()?.message))
+    }
+  }
+
+  override suspend fun completeRide(ride: Ride): ServiceResult<Unit> {
+    val channelClient = client.channel(cid = ride.rideId)
+    channelClient.delete().await()
+    return ServiceResult.Value(Unit)
+  }
+
+  override suspend fun advanceRide(rideId: String, newState: String): ServiceResult<Unit> =
+    withContext(ioDispatcher) {
+      val advanceRide = client.updateChannelPartial(
+        channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
+        channelId = getChannelIdOnly(rideId),
+        set = mapOf(
+          KEY_STATUS to newState,
+        ),
+      ).await()
+      if (advanceRide.isSuccess) {
+        ServiceResult.Value(Unit)
+      } else {
+        ServiceResult.Failure(Exception(advanceRide.errorOrNull()?.message))
+      }
+    }
+
+  override suspend fun updateDriverLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit> =
+    withContext(ioDispatcher) {
+      val updateRide = client.updateChannelPartial(
+        channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
+        channelId = getChannelIdOnly(ride.rideId),
+        set = mapOf(
+          KEY_DRIVER_LAT to lat,
+          KEY_PASSENGER_LON to lng,
+        ),
+      ).await()
+      if (updateRide.isSuccess) {
+        // Update will trigger event global but not locally
+        val currentRide = _rideUpdates.value
+        if (currentRide is ServiceResult.Value && currentRide.value != null) {
+          _rideUpdates.value = ServiceResult.Value(
+            currentRide.value.copy(
+              driverLatitude = lat,
+              driverLongitude = lng,
+            ),
+          )
+        }
+        ServiceResult.Value(Unit)
+      } else {
+        ServiceResult.Failure(Exception(updateRide.errorOrNull()?.message))
+      }
+    }
+
+  override suspend fun updatePassengerLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit> =
+    withContext(ioDispatcher) {
+      val updateRide = client.updateChannelPartial(
+        channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
+        channelId = getChannelIdOnly(ride.rideId),
+        set = mapOf(
+          KEY_PASSENGER_LAT to lat,
+          KEY_PASSENGER_LON to lng,
+        ),
+      ).await()
+      if (updateRide.isSuccess) {
+        // Update will trigger event global but not locally
+        val currentRide = _rideUpdates.value
+        if (currentRide is ServiceResult.Value && currentRide.value != null) {
+          _rideUpdates.value = ServiceResult.Value(
+            currentRide.value.copy(
+              driverLatitude = lat,
+              driverLongitude = lng,
+            ),
+          )
+        }
+        ServiceResult.Value(Unit)
+      } else {
+        ServiceResult.Failure(Exception(updateRide.errorOrNull()?.message))
+      }
+    }
+
+  private fun observeChannelEvents(channelClient: ChannelClient) {
+    channelClient.subscribe { event ->
+      when (event) {
+        is ChannelDeletedEvent -> {
+          _rideUpdates.update { ServiceResult.Value(null) }
+        }
+
+        is ChannelUpdatedByUserEvent -> {
+          _rideUpdates.update { ServiceResult.Value(streamChannelToRide(event.channel)) }
+        }
+
+        is NewMessageEvent -> {
+          val currentRide = _rideUpdates.value
+          if (currentRide is ServiceResult.Value && currentRide.value != null) {
+            client.channel(cid = event.cid).create(emptyList(), mapOf()).enqueue { result ->
+              if (result.isSuccess) {
+                val lastMessageAt = result.getOrNull()?.lastMessageAt
+                val totalMessages = if (lastMessageAt == null) 0 else 1
+                _rideUpdates.update { ServiceResult.Value(currentRide.value.copy(totalMessages = totalMessages)) }
+              }
+            }
+          }
+        }
+
+        else -> {
+          Timber.d("Event: $event")
+        }
+      }
+    }
+  }
+
+  private fun streamChannelToRide(channel: Channel): Ride {
+    val extraData = channel.extraData
+
+    val destAddress = extraData[KEY_DEST_ADDRESS] as String?
+    val destLat = extraData[KEY_DEST_LAT] as Double?
+    val destLng = extraData[KEY_DEST_LON] as Double?
+
+    val driverId = extraData[KEY_DRIVER_ID] as String?
+    val driverLat = extraData[KEY_DEST_LAT] as Double?
+    val driverLng = extraData[KEY_DEST_LON] as Double?
+    val driverName = extraData[KEY_DRIVER_NAME] as String?
+
+    val passengerId = extraData[KEY_PASSENGER_ID] as String?
+    val passengerLat = extraData[KEY_PASSENGER_LAT] as Double?
+    val passengerLng = extraData[KEY_PASSENGER_LON] as Double?
+    val passengerName = extraData[KEY_PASSENGER_NAME] as String?
+    val status = extraData[KEY_STATUS] as String?
+
+    return Ride(
+      rideId = channel.cid,
+      status = status ?: RideStatus.SEARCHING_FOR_DRIVER.value,
+      destinationLatitude = destLat ?: 999.9,
+      destinationLongitude = destLng ?: 999.9,
+      destinationAddress = destAddress ?: "",
+      passengerId = passengerId ?: "",
+      passengerLatitude = passengerLat ?: 999.0,
+      passengerLongitude = passengerLng ?: 999.0,
+      passengerName = passengerName ?: "",
+      driverId = driverId ?: "",
+      driverLatitude = driverLat,
+      driverLongitude = driverLng,
+      driverName = driverName,
+      totalMessages = if (channel.lastMessageAt == null) 0 else 1,
+    )
+  }
+
+  private fun getChannelIdOnly(cid: String): String = cid.split(":").last()
 }

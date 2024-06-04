@@ -20,9 +20,13 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
@@ -34,6 +38,7 @@ import org.mtali.core.models.BoltUser
 import org.mtali.core.models.CreateRide
 import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
+import org.mtali.core.models.Ride
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import timber.log.Timber
@@ -51,7 +56,9 @@ class PassengerViewMode @Inject constructor(
   var toastHandler: ((ToastMessage) -> Unit)? = null
 
   private val _mapIsReady = MutableStateFlow(false)
-  private var _passenger = MutableStateFlow<BoltUser?>(null)
+  private val _passenger = MutableStateFlow<BoltUser?>(null)
+  private var _ride: Flow<ServiceResult<Ride?>> = rideRepository.rideFlow()
+
   private val _autoCompletePlaces = MutableStateFlow<List<PlacesAutoComplete>>(emptyList())
   val autoCompletePlaces: StateFlow<List<PlacesAutoComplete>> = _autoCompletePlaces
 
@@ -59,6 +66,28 @@ class PassengerViewMode @Inject constructor(
   val destinationQuery: StateFlow<String> = _destinationQuery
 
   private val deviceLocation = deviceRepository.deviceLocation
+
+  /**
+   * Conditions
+   * a. User/Passenger can never be null
+   * b. Ride may be null
+   * c. Rode may not be null and have the following states
+   *  - SEARCHING_FOR_DRIVER
+   *  - PASSENGER_PICK_UP
+   *  - EN_ROUTE
+   *  - ARRIVED
+   */
+  val uiState = combine(
+    _passenger,
+    _ride,
+    _mapIsReady,
+  ) { passenger, ride, mapIsReady ->
+  }
+    .stateIn(
+      scope = viewModelScope,
+      started = SharingStarted.WhileSubscribed(5_000),
+      initialValue = null,
+    )
 
   init {
     getPassenger()
