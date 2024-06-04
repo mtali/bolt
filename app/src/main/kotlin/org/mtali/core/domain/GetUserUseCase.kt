@@ -16,14 +16,29 @@
 package org.mtali.core.domain
 
 import org.mtali.core.data.repositories.FirebaseAuthRepository
+import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 import javax.inject.Inject
 
 class GetUserUseCase @Inject constructor(
   private val firebaseAuthRepository: FirebaseAuthRepository,
+  private val streamUserRepository: StreamUserRepository,
 ) {
-  operator fun invoke(): ServiceResult<BoltUser?> {
-    return firebaseAuthRepository.getSession()
+  suspend operator fun invoke(): ServiceResult<BoltUser?> {
+    return when (val session = firebaseAuthRepository.getSession()) {
+      is ServiceResult.Failure -> session
+      is ServiceResult.Value -> {
+        if (session.value == null) {
+          session
+        } else {
+          getUserDetails(session.value.userId)
+        }
+      }
+    }
+  }
+
+  private suspend fun getUserDetails(uid: String): ServiceResult<BoltUser?> {
+    return streamUserRepository.getStreamUserById(uid)
   }
 }

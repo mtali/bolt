@@ -28,11 +28,15 @@ import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
+import org.mtali.core.domain.GetUserUseCase
+import org.mtali.core.domain.LogoutUseCase
+import org.mtali.core.models.BoltUser
 import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.models.Ride
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,11 +44,14 @@ class PassengerViewMode @Inject constructor(
   deviceRepository: DeviceRepository,
   private val googleRepository: GoogleRepository,
   private val rideRepository: RideRepository,
+  private val getUserUseCase: GetUserUseCase,
+  private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
   var toastHandler: ((ToastMessage) -> Unit)? = null
 
   private val _mapIsReady = MutableStateFlow(false)
+  private var _passenger = MutableStateFlow<BoltUser?>(null)
   private val _autoCompletePlaces = MutableStateFlow<List<PlacesAutoComplete>>(emptyList())
   val autoCompletePlaces: StateFlow<List<PlacesAutoComplete>> = _autoCompletePlaces
 
@@ -52,6 +59,10 @@ class PassengerViewMode @Inject constructor(
   val destinationQuery: StateFlow<String> = _destinationQuery
 
   private val deviceLocation = deviceRepository.deviceLocation
+
+  init {
+    getPassenger()
+  }
 
   fun onMapLoaded() = _mapIsReady.update { true }
 
@@ -66,6 +77,23 @@ class PassengerViewMode @Inject constructor(
           _autoCompletePlaces.update {
             result.value.map { prediction -> prediction.toPlacesAutoComplete() }
           }
+        }
+      }
+    }
+  }
+
+  private fun getPassenger() = viewModelScope.launch {
+    when (val getUserResult = getUserUseCase()) {
+      is ServiceResult.Failure -> {
+        toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
+        logoutUser()
+      }
+
+      is ServiceResult.Value -> {
+        if (getUserResult.value == null) {
+          logoutUser()
+        } else {
+          _passenger.value = getUserResult.value
         }
       }
     }
@@ -99,9 +127,10 @@ class PassengerViewMode @Inject constructor(
   }
 
   private suspend fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
+    val passenger = checkNotNull(_passenger.value)
     val ride = Ride(
-      passengerId = "",
-      passengerName = "",
+      passengerId = passenger.userId,
+      passengerName = passenger.username,
       passengerLat = currentLocation.lat,
       passengerLng = currentLocation.lng,
       destAddress = destAddress,
@@ -115,6 +144,11 @@ class PassengerViewMode @Inject constructor(
         clearSearch()
       }
     }
+  }
+
+  private fun logoutUser() {
+    Timber.e("Forced logout")
+    viewModelScope.launch { logoutUseCase() }
   }
 }
 
