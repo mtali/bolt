@@ -20,7 +20,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -41,13 +40,14 @@ class MainViewModel @Inject constructor(
   private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
 
-  val uiState: StateFlow<MainUiState> = combine(firebaseAuthRepository.currentUser, streamUserRepository.streamUser) { firebase, stream ->
+  val uiState = combine(firebaseAuthRepository.currentUser, streamUserRepository.streamUser) { firebase, stream ->
     if (firebase != null && stream == null) reAuthStream(firebase.userId)
-    MainUiState.Success(isLoggedIn = firebase != null && stream != null)
+    val isLoggedIn = firebase != null && stream != null
+    MainUiState.Success(isLoggedIn = isLoggedIn)
   }
     .stateIn(
       scope = viewModelScope,
-      started = SharingStarted.Eagerly,
+      started = SharingStarted.WhileSubscribed(5_000),
       initialValue = MainUiState.Loading,
     )
 
