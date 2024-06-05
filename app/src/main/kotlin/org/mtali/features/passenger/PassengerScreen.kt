@@ -53,6 +53,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -84,16 +85,22 @@ import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.utils.handleToast
+import timber.log.Timber
 
 @Composable
 fun PassengerRoute(
-  viewModel: PassengerViewMode = hiltViewModel(),
+  viewModel: PassengerViewModel = hiltViewModel(),
   locationPermissionGranted: Boolean,
   onClickDrawerMenu: () -> Unit,
 ) {
   val context = LocalContext.current
   val destinationQuery by viewModel.destinationQuery.collectAsStateWithLifecycle()
   val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
+
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  LaunchedEffect(key1 = uiState) {
+    Timber.tag("wakanda:PassengerRoute").d("$uiState")
+  }
 
   viewModel.toastHandler = { context.handleToast(it) }
 

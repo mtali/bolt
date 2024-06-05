@@ -26,7 +26,7 @@ data class Ride(
   val passengerLongitude: Double = 0.0,
   val passengerName: String = "",
   val passengerAvatarUrl: String? = null,
-  val driverId: String = "",
+  val driverId: String? = null,
   val driverLatitude: Double? = null,
   val driverLongitude: Double? = null,
   val driverName: String? = null,

@@ -357,7 +357,7 @@ class RideRepositoryImpl @Inject constructor(
       passengerLatitude = passengerLat ?: 999.0,
       passengerLongitude = passengerLng ?: 999.0,
       passengerName = passengerName ?: "",
-      driverId = driverId ?: "",
+      driverId = driverId,
       driverLatitude = driverLat,
       driverLongitude = driverLng,
       driverName = driverName,

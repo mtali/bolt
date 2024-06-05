@@ -24,8 +24,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -39,8 +39,10 @@ import org.mtali.core.models.CreateRide
 import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.models.Ride
+import org.mtali.core.models.RideStatus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
+import org.mtali.core.utils.combineTuple
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -48,7 +50,7 @@ import javax.inject.Inject
 private const val tag = "wakanda:PassengerViewModel"
 
 @HiltViewModel
-class PassengerViewMode @Inject constructor(
+class PassengerViewModel @Inject constructor(
   deviceRepository: DeviceRepository,
   private val googleRepository: GoogleRepository,
   private val rideRepository: RideRepository,
@@ -60,7 +62,7 @@ class PassengerViewMode @Inject constructor(
 
   private val _mapIsReady = MutableStateFlow(false)
   private val _passenger = MutableStateFlow<BoltUser?>(null)
-  private var _ride: Flow<ServiceResult<Ride?>> = rideRepository.rideFlow()
+  private var _rideResult: Flow<ServiceResult<Ride?>> = rideRepository.rideFlow()
 
   private val _autoCompletePlaces = MutableStateFlow<List<PlacesAutoComplete>>(emptyList())
   val autoCompletePlaces: StateFlow<List<PlacesAutoComplete>> = _autoCompletePlaces
@@ -80,12 +82,90 @@ class PassengerViewMode @Inject constructor(
    *  - EN_ROUTE
    *  - ARRIVED
    */
-  val uiState = combine(
+  val uiState = combineTuple(
     _passenger,
-    _ride,
+    _rideResult,
     _mapIsReady,
-  ) { passenger, ride, mapIsReady ->
+  ).map { (passenger, rideResult, mapIsReady) ->
 
+    if (rideResult is ServiceResult.Failure) return@map PassengerUiState.Error
+
+    val ride = (rideResult as ServiceResult.Value).value
+
+    // only publish updates when map is loaded
+    if (passenger == null || !mapIsReady) {
+      PassengerUiState.Loading
+    } else {
+      when {
+        // No ride
+        ride == null -> {
+          PassengerUiState.RideInactive
+        }
+
+        // Ride no driver
+        ride.driverId == null -> {
+          PassengerUiState.SearchingForDriver(
+            passengerLat = ride.passengerLatitude,
+            passengerLng = ride.passengerLongitude,
+            destinationAddress = ride.destinationAddress
+          )
+        }
+
+        // Ride (pickup process) and driver
+        ride.status == RideStatus.PASSENGER_PICK_UP.value &&
+          ride.driverLatitude != null &&
+          ride.driverLongitude != null -> {
+          PassengerUiState.PassengerPickUp(
+            passengerLat = ride.passengerLatitude,
+            passengerLng = ride.passengerLongitude,
+            driverLat = ride.driverLatitude,
+            driverLng = ride.driverLongitude,
+            destinationLat = ride.destinationLatitude,
+            destinationLng = ride.destinationLongitude,
+            destinationAddress = ride.destinationAddress,
+            driverName = ride.driverName ?: "Error",
+            totalMessages = ride.totalMessages
+          )
+        }
+
+        // Ride (en route) and driver
+        ride.status == RideStatus.EN_ROUTE.value &&
+          ride.driverLatitude != null &&
+          ride.driverLongitude != null -> {
+          PassengerUiState.EnRoute(
+            passengerLat = ride.passengerLatitude,
+            passengerLng = ride.passengerLongitude,
+            driverLat = ride.driverLatitude,
+            driverLng = ride.driverLongitude,
+            destinationLat = ride.destinationLatitude,
+            destinationLng = ride.destinationLongitude,
+            destinationAddress = ride.destinationAddress,
+            driverName = ride.driverName ?: "Error",
+            totalMessages = ride.totalMessages
+          )
+        }
+
+        // Ride (arrived) and driver
+        ride.status == RideStatus.ARRIVED.value &&
+          ride.driverLatitude != null &&
+          ride.driverLongitude != null -> {
+          PassengerUiState.Arrive(
+            passengerLat = ride.passengerLatitude,
+            passengerLng = ride.passengerLongitude,
+            destinationLat = ride.destinationLatitude,
+            destinationLng = ride.destinationLongitude,
+            driverName = ride.driverName ?: "Error",
+            totalMessages = ride.totalMessages
+          )
+        }
+
+        // I will be dammed
+        else -> {
+          Timber.e("For fu*k sake: PassengerUiState.Error $passenger, $ride")
+          PassengerUiState.Error
+        }
+      }
+    }
   }
     .stateIn(
       scope = viewModelScope,
@@ -181,6 +261,7 @@ class PassengerViewMode @Inject constructor(
           Timber.tag(tag).d("get place lat lng: failed")
           toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
         }
+
         is ServiceResult.Value -> {
           if (destLatLng.value == null) {
             Timber.tag(tag).d("get place lat lng: failed")
@@ -224,6 +305,7 @@ class PassengerViewMode @Inject constructor(
         Timber.tag(tag).d("attempt create ride: failed")
         toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
       }
+
       is ServiceResult.Value -> {
         Timber.tag(tag).d("attempt create ride: success")
         observeRide(result.value, _passenger.value!!)

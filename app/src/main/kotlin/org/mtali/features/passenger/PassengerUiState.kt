@@ -33,7 +33,7 @@ sealed interface PassengerUiState {
     val destinationLng: Double,
     val destinationAddress: String,
     val driverName: String,
-    val totalMessages: String,
+    val totalMessages: Int,
   ) : PassengerUiState
 
   data class EnRoute(
@@ -43,9 +43,9 @@ sealed interface PassengerUiState {
     val destinationLng: Double,
     val driverLat: Double,
     val driverLng: Double,
-    val destinationAddress: Double,
+    val destinationAddress: String,
     val driverName: String,
-    val totalMessages: String,
+    val totalMessages: Int,
   ) : PassengerUiState
 
   data class Arrive(
@@ -54,7 +54,7 @@ sealed interface PassengerUiState {
     val destinationLat: Double,
     val destinationLng: Double,
     val driverName: String,
-    val totalMessages: String,
+    val totalMessages: Int,
   ) : PassengerUiState
 
   data object Error : PassengerUiState
