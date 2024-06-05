@@ -56,6 +56,7 @@ abstract class DataModule {
   abstract fun bindUsersRepo(repo: StreamUserRepositoryImpl): StreamUserRepository
 
   @Binds
+  @Singleton
   abstract fun rideRepo(repository: RideRepositoryImpl): RideRepository
 
   companion object {

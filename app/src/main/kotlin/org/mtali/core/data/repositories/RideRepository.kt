@@ -23,12 +23,11 @@ import org.mtali.core.models.ServiceResult
 interface RideRepository {
   fun rideFlow(): Flow<ServiceResult<Ride?>>
   fun openRides(): Flow<ServiceResult<List<Ride>>>
+  suspend fun getRideIfInProgress(): ServiceResult<String?>
   suspend fun createRide(createRide: CreateRide): ServiceResult<String>
   suspend fun observeRideById(rideId: String)
   suspend fun observeOpenRides()
-
   suspend fun cancelRide(): ServiceResult<Unit>
-
   suspend fun completeRide(ride: Ride): ServiceResult<Unit>
   suspend fun advanceRide(rideId: String, newState: String): ServiceResult<Unit>
   suspend fun updateDriverLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit>
