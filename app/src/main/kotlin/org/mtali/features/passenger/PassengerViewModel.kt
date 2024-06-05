@@ -170,7 +170,7 @@ class PassengerViewModel @Inject constructor(
     .stateIn(
       scope = viewModelScope,
       started = SharingStarted.WhileSubscribed(5_000),
-      initialValue = null,
+      initialValue = PassengerUiState.Loading,
     )
 
   init {
@@ -274,6 +274,12 @@ class PassengerViewModel @Inject constructor(
           }
         }
       }
+    }
+  }
+
+  fun onCancelRide() {
+    viewModelScope.launch {
+      rideRepository.cancelRide()
     }
   }
 
