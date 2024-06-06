@@ -19,6 +19,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,37 +38,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.GoogleMapComposable
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.rememberCameraPositionState
 
 private val DEFAULT_CORNER = 10.dp
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun MapDashboard(
+fun Dashboard(
   modifier: Modifier = Modifier,
   sheetState: SheetState,
-  onMapLoaded: () -> Unit,
   onClickDrawerMenu: () -> Unit,
   sheetFillHeight: Boolean = false,
   forceShowDragHandle: Boolean = false,
-  locationPermissionGranted: Boolean = false,
   showDrawerMenu: Boolean = false,
-  mapContent:
-  (
-  @Composable @GoogleMapComposable
-    () -> Unit
-  )? = null,
   sheetContent: @Composable ColumnScope.() -> Unit,
+  content: @Composable (PaddingValues) -> Unit,
 ) {
   val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
   val corner = if (sheetState.progress() > 0.85f) 0.dp else DEFAULT_CORNER
 
-  LaunchedEffect(key1 = Unit) {
-    sheetState.expand()
-  }
+  LaunchedEffect(Unit) { sheetState.expand() }
 
   Box(
     modifier = modifier.fillMaxSize(),
@@ -84,13 +73,8 @@ fun MapDashboard(
           BottomSheetDefaults.DragHandle()
         }
       },
-    ) {
-      Map(
-        onMapLoaded = onMapLoaded,
-        locationPermissionGranted = locationPermissionGranted,
-        mapContent = mapContent,
-      )
-    }
+      content = content,
+    )
 
     DrawerMenu(
       modifier = Modifier
@@ -100,28 +84,6 @@ fun MapDashboard(
       onClick = onClickDrawerMenu,
     )
   }
-}
-
-@Composable
-private fun Map(
-  modifier: Modifier = Modifier,
-  onMapLoaded: () -> Unit,
-  locationPermissionGranted: Boolean,
-  mapContent:
-  (
-  @Composable @GoogleMapComposable
-    () -> Unit
-  )?,
-) {
-  val cameraPositionState = rememberCameraPositionState {}
-
-  GoogleMap(
-    modifier = modifier.fillMaxSize(),
-    cameraPositionState = cameraPositionState,
-    onMapLoaded = onMapLoaded,
-    properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
-    content = mapContent,
-  )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

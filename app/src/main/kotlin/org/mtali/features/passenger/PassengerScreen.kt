@@ -71,9 +71,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
+import org.mtali.core.designsystem.components.Dashboard
 import org.mtali.core.designsystem.components.Height
-import org.mtali.core.designsystem.components.MapDashboard
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
@@ -126,17 +129,13 @@ private fun PassengerScreen(
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
   var sheetFillHeight by remember { mutableStateOf(false) }
 
-  MapDashboard(
+  Dashboard(
     modifier = Modifier,
-    onMapLoaded = onMapLoaded,
     sheetState = sheetState,
     onClickDrawerMenu = onClickDrawerMenu,
     sheetFillHeight = sheetFillHeight,
     forceShowDragHandle = uiState !is PassengerUiState.RideInactive,
-    locationPermissionGranted = locationPermissionGranted,
     showDrawerMenu = if (uiState is PassengerUiState.RideInactive) !sheetFillHeight else true,
-    mapContent = {
-    },
     sheetContent = {
       when (uiState) {
         is PassengerUiState.RideInactive -> {
@@ -178,6 +177,15 @@ private fun PassengerScreen(
         is PassengerUiState.Loading -> {
         }
       }
+    },
+    content = {
+      val cameraPositionState = rememberCameraPositionState()
+      GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState,
+        onMapLoaded = onMapLoaded,
+        properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+      )
     },
   )
 }

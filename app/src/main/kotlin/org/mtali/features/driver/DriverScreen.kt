@@ -16,6 +16,7 @@
 package org.mtali.features.driver
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -23,7 +24,10 @@ import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.mtali.core.designsystem.components.MapDashboard
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.rememberCameraPositionState
+import org.mtali.core.designsystem.components.Dashboard
 
 @Composable
 fun DriverRoute(locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
@@ -43,20 +47,25 @@ private fun DriverScreen(
 ) {
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
 
-  MapDashboard(
-    onMapLoaded = onMapLoaded,
+  Dashboard(
     sheetState = sheetState,
     onClickDrawerMenu = onClickDrawerMenu,
     sheetFillHeight = false,
     forceShowDragHandle = true,
-    locationPermissionGranted = locationPermissionGranted,
     showDrawerMenu = true,
-    mapContent = {
-    },
     sheetContent = {
       Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(text = "Looking for rides")
       }
+    },
+    content = {
+      val cameraPositionState = rememberCameraPositionState()
+      GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState,
+        onMapLoaded = onMapLoaded,
+        properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+      )
     },
   )
 }
