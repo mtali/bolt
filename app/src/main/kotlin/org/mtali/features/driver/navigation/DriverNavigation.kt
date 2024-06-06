@@ -27,8 +27,11 @@ fun NavController.navigateToDriver(navOptions: NavOptions? = null) {
   navigate(driverRoute, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.driverScreen(locationPermissionGranted: Boolean) {
+fun NavGraphBuilder.driverScreen(locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
   composable(driverRoute) {
-    DriverRoute(locationPermissionGranted = locationPermissionGranted)
+    DriverRoute(
+      locationPermissionGranted = locationPermissionGranted,
+      onClickDrawerMenu = onClickDrawerMenu,
+    )
   }
 }

@@ -50,7 +50,7 @@ fun BoltNavHost(
       onSignupSuccess = { navController.navigateToLogin(clear()) },
     ) // TODO: restore state when navigating to login
 
-    driverScreen(locationPermissionGranted = locationPermissionGranted)
+    driverScreen(onClickDrawerMenu = onClickDrawerMenu, locationPermissionGranted = locationPermissionGranted)
 
     passengerScreen(onClickDrawerMenu = onClickDrawerMenu, locationPermissionGranted = locationPermissionGranted)
   }

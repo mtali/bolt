@@ -110,8 +110,6 @@ fun PassengerRoute(
   )
 }
 
-private val DEFAULT_CORNER = 10.dp
-
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun PassengerScreen(
