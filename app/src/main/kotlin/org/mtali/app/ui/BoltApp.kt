@@ -243,21 +243,6 @@ private fun DrawerContent(
     HorizontalDivider()
 
     NavigationDrawerItem(
-      label = { Text(text = stringResource(id = R.string.logout)) },
-      selected = false,
-      icon = {
-        Icon(imageVector = Icons.AutoMirrored.Outlined.Logout, contentDescription = "logout")
-      },
-      onClick = {
-        scope.launch { drawerState.close() }.invokeOnCompletion {
-          onLogout()
-        }
-      },
-    )
-
-    Spacer(modifier = Modifier.weight(1f))
-
-    NavigationDrawerItem(
       label = { Text(text = "Switch to Driver ") },
       icon = {
         Icon(imageVector = Icons.Outlined.SwitchRight, contentDescription = "switch")
@@ -266,6 +251,21 @@ private fun DrawerContent(
       onClick = {
         scope.launch { drawerState.close() }.invokeOnCompletion {
           onToggleUserType()
+        }
+      },
+    )
+
+    Spacer(modifier = Modifier.weight(1f))
+
+    NavigationDrawerItem(
+      label = { Text(text = stringResource(id = R.string.logout)) },
+      selected = false,
+      icon = {
+        Icon(imageVector = Icons.AutoMirrored.Outlined.Logout, contentDescription = "logout")
+      },
+      onClick = {
+        scope.launch { drawerState.close() }.invokeOnCompletion {
+          onLogout()
         }
       },
     )
