@@ -17,6 +17,7 @@
   <string name="app_name">Bolt́ 🛺</string>
   <string name="loading">Loading</string>
   <string name="email">Email</string>
+  <string name="name">Name</string>
   <string name="logout">Logout</string>
   <string name="password">Password</string>
   <string name="cont">Continue</string>
@@ -32,7 +33,6 @@
   <string name="invalid_input">Invalid input 🤥</string>
   <string name="account_exists">Account already exists 💥</string>
   <string name="account_created">Account created ✅. To proceed kindly login</string>
-  <string name="name">Name</string>
   <string name="where_to">Where to?</string>
   <string name="your_route">Your route</string>
   <string name="destination">Destination</string>
@@ -44,4 +44,6 @@
   <string name="failed_re_auth">Failed to re-authenticate 🤐</string>
   <string name="search_driver">Searching for driver</string>
   <string name="wait_for_driver">Wait for driver to confirm the order</string>
+  <string name="switch_to_driver">Switch to Driver </string>
+  <string name="switch_to_passenger">Switch to Passenger</string>
 </resources>
