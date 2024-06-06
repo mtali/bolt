@@ -68,13 +68,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.mtali.R
 import org.mtali.app.main.MainUiState
+import org.mtali.app.main.getRoute
 import org.mtali.app.navigator.BoltNavHost
 import org.mtali.core.models.UserType
 import org.mtali.core.utils.areLocationPermissionGranted
 import org.mtali.core.utils.devicePermissionStatus
 import org.mtali.core.utils.openSettings
-import org.mtali.features.login.navigation.navigation.loginRoute
-import org.mtali.features.passenger.navigation.passengerRoute
 import timber.log.Timber
 
 @Composable
@@ -175,7 +174,7 @@ fun BoltApp(
           is MainUiState.Success -> {
             BoltNavHost(
               modifier = Modifier.fillMaxSize(),
-              startDestination = if (uiState.isLoggedIn) passengerRoute else loginRoute,
+              startDestination = uiState.getRoute(),
               appState = appState,
               locationPermissionGranted = isLocationPermissionGranted,
               onClickDrawerMenu = {

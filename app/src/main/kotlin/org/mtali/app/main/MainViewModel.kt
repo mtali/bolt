@@ -35,6 +35,9 @@ import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import org.mtali.core.models.UserType
 import org.mtali.core.utils.isRunning
+import org.mtali.features.driver.navigation.driverRoute
+import org.mtali.features.login.navigation.navigation.loginRoute
+import org.mtali.features.passenger.navigation.passengerRoute
 import javax.inject.Inject
 
 @HiltViewModel
@@ -94,6 +97,14 @@ sealed interface MainUiState {
     val isLoggedIn: Boolean = false,
     val userType: UserType,
   ) : MainUiState
+}
+
+fun MainUiState.Success.getRoute(): String {
+  return when {
+    !isLoggedIn -> loginRoute
+    userType == UserType.DRIVER -> driverRoute
+    else -> passengerRoute
+  }
 }
 
 private fun LatLng.asLocation() = Location(lat = latitude, lng = longitude)
