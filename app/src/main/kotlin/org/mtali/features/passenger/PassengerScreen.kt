@@ -197,7 +197,6 @@ private fun PassengerScreen(
           }
         }
       },
-//      sheetPeekHeight = 120.dp,
       sheetShape = RoundedCornerShape(topEnd = corner, topStart = corner),
       modifier = Modifier.fillMaxSize(),
       scaffoldState = scaffoldState,
