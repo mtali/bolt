@@ -86,7 +86,6 @@ class RideRepositoryImpl @Inject constructor(
         Timber.tag(tag).d("end.. check ride: no ride exits")
         ServiceResult.Value(null)
       } else {
-
         channels.first().let {
           Timber.tag(tag).d("end.. check ride: yes -> '${it.cid}'")
           ServiceResult.Value(it.cid)
@@ -142,7 +141,6 @@ class RideRepositoryImpl @Inject constructor(
       }
 
       result.onErrorSuspend {
-
         val error = result.errorOrNull()!!
         Timber.tag(tag).d("cont.. observe ride[$rideId]: add member failed ${error.message}")
         _rideUpdates.emit(ServiceResult.Failure(Exception(error.message)))
@@ -181,7 +179,6 @@ class RideRepositoryImpl @Inject constructor(
     )
     val result = client.queryChannels(request).await()
     if (result.isSuccess) {
-
       val channels = result.getOrNull() ?: emptyList()
       if (channels.isEmpty()) {
         Timber.tag(tag).d("end.. cancel ride: no channels/rides to cancel")
@@ -219,7 +216,7 @@ class RideRepositoryImpl @Inject constructor(
 
   override suspend fun advanceRide(rideId: String, newState: String): ServiceResult<Unit> =
     withContext(ioDispatcher) {
-      Timber.tag(tag).d("start.. advance ride to ${newState}")
+      Timber.tag(tag).d("start.. advance ride to $newState")
       val advanceRide = client.updateChannelPartial(
         channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
         channelId = getChannelIdOnly(rideId),
@@ -228,10 +225,10 @@ class RideRepositoryImpl @Inject constructor(
         ),
       ).await()
       if (advanceRide.isSuccess) {
-        Timber.tag(tag).d("end.. advance ride to ${newState}: ride advanced")
+        Timber.tag(tag).d("end.. advance ride to $newState: ride advanced")
         ServiceResult.Value(Unit)
       } else {
-        Timber.tag(tag).d("end.. advance ride to ${newState}: ride failed to advance")
+        Timber.tag(tag).d("end.. advance ride to $newState: ride failed to advance")
         ServiceResult.Failure(Exception(advanceRide.errorOrNull()?.message))
       }
     }

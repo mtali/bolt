@@ -112,7 +112,7 @@ fun PassengerRoute(
     onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
     onClickDrawerMenu = onClickDrawerMenu,
     onCancelRide = viewModel::onCancelRide,
-    uiState = uiState
+    uiState = uiState,
   )
 }
 
@@ -129,7 +129,7 @@ private fun PassengerScreen(
   onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
   onClickDrawerMenu: () -> Unit,
   uiState: PassengerUiState,
-  onCancelRide: () -> Unit
+  onCancelRide: () -> Unit,
 ) {
   var fullHeight by remember { mutableStateOf(false) }
 
@@ -167,30 +167,24 @@ private fun PassengerScreen(
                 onCancelRide = {
                   fullHeight = false
                   onCancelRide()
-                }
+                },
               )
             }
 
             is PassengerUiState.PassengerPickUp -> {
-
             }
 
             is PassengerUiState.EnRoute -> {
-
             }
 
             is PassengerUiState.Arrive -> {
-
             }
 
             is PassengerUiState.Error -> {
-
             }
 
             is PassengerUiState.Loading -> {
-
             }
-
           }
         }
       },
@@ -238,12 +232,12 @@ private fun SearchingForDriver(onCancelRide: () -> Unit) {
   Column(
     Modifier
       .fillMaxWidth()
-      .padding(horizontal = 16.dp)
+      .padding(horizontal = 16.dp),
   ) {
     Row(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.Top
+      verticalAlignment = Alignment.Top,
     ) {
       Column {
         Text(text = stringResource(id = R.string.search_driver), fontWeight = FontWeight.Bold, fontSize = 17.sp)
@@ -254,7 +248,7 @@ private fun SearchingForDriver(onCancelRide: () -> Unit) {
 
     Row(
       modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.Center
+      horizontalArrangement = Arrangement.Center,
     ) {
       CircularProgressIndicator(modifier = Modifier.size(60.dp))
     }
@@ -423,5 +417,4 @@ private fun LazyListScope.searchDummy(progress: Float, onClickSearch: () -> Unit
 
 @Composable
 private fun DriverArrived() {
-
 }

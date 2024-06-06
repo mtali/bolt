@@ -46,7 +46,6 @@ import org.mtali.core.utils.combineTuple
 import timber.log.Timber
 import javax.inject.Inject
 
-
 private const val tag = "wakanda:PassengerViewModel"
 
 @HiltViewModel
@@ -107,7 +106,7 @@ class PassengerViewModel @Inject constructor(
           PassengerUiState.SearchingForDriver(
             passengerLat = ride.passengerLatitude,
             passengerLng = ride.passengerLongitude,
-            destinationAddress = ride.destinationAddress
+            destinationAddress = ride.destinationAddress,
           )
         }
 
@@ -124,7 +123,7 @@ class PassengerViewModel @Inject constructor(
             destinationLng = ride.destinationLongitude,
             destinationAddress = ride.destinationAddress,
             driverName = ride.driverName ?: "Error",
-            totalMessages = ride.totalMessages
+            totalMessages = ride.totalMessages,
           )
         }
 
@@ -141,7 +140,7 @@ class PassengerViewModel @Inject constructor(
             destinationLng = ride.destinationLongitude,
             destinationAddress = ride.destinationAddress,
             driverName = ride.driverName ?: "Error",
-            totalMessages = ride.totalMessages
+            totalMessages = ride.totalMessages,
           )
         }
 
@@ -155,7 +154,7 @@ class PassengerViewModel @Inject constructor(
             destinationLat = ride.destinationLatitude,
             destinationLng = ride.destinationLongitude,
             driverName = ride.driverName ?: "Error",
-            totalMessages = ride.totalMessages
+            totalMessages = ride.totalMessages,
           )
         }
 
@@ -184,7 +183,6 @@ class PassengerViewModel @Inject constructor(
   }
 
   private fun requestPlacesAutocomplete() {
-
     val query = _destinationQuery.value
     if (query.length < 3) return
 
@@ -233,7 +231,6 @@ class PassengerViewModel @Inject constructor(
         Timber.tag(tag).d("get active ride: failed")
         toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
         logoutUser()
-
       }
 
       is ServiceResult.Value -> {
@@ -241,7 +238,9 @@ class PassengerViewModel @Inject constructor(
         if (ride.value == null) {
           Timber.tag(tag).d("get active ride: success .. set passenger}")
           _passenger.update { user }
-        } else observeRide(ride.value, user)
+        } else {
+          observeRide(ride.value, user)
+        }
       }
     }
   }
