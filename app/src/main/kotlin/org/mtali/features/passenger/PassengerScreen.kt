@@ -50,7 +50,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -75,8 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -139,7 +136,6 @@ private fun PassengerScreen(
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
   val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
   val progress = sheetState.progress()
-  val sheetExpanded = sheetState.currentValue == SheetValue.Expanded
   val corner = if (progress > 0.85f) 0.dp else DEFAULT_CORNER
 
   LaunchedEffect(Unit) { sheetState.expand() }
@@ -175,11 +171,15 @@ private fun PassengerScreen(
               )
             }
 
-            is PassengerUiState.Arrive -> {
+            is PassengerUiState.PassengerPickUp -> {
 
             }
 
             is PassengerUiState.EnRoute -> {
+
+            }
+
+            is PassengerUiState.Arrive -> {
 
             }
 
@@ -191,9 +191,6 @@ private fun PassengerScreen(
 
             }
 
-            is PassengerUiState.PassengerPickUp -> {
-
-            }
           }
         }
       },
@@ -225,10 +222,8 @@ private fun Map(
   onMapLoaded: () -> Unit,
   locationPermissionGranted: Boolean,
 ) {
-  val singapore = LatLng(1.35, 103.87)
-  val cameraPositionState = rememberCameraPositionState {
-    position = CameraPosition.fromLatLngZoom(singapore, 10f)
-  }
+  val cameraPositionState = rememberCameraPositionState {}
+
   GoogleMap(
     modifier = modifier.fillMaxSize(),
     cameraPositionState = cameraPositionState,
@@ -424,4 +419,9 @@ private fun LazyListScope.searchDummy(progress: Float, onClickSearch: () -> Unit
       }
     }
   }
+}
+
+@Composable
+private fun DriverArrived() {
+
 }
