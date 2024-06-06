@@ -90,9 +90,8 @@ class MainActivity : ComponentActivity() {
           shouldShowRequestPermissionRationale = {
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)
           },
-          onLocationPermissionGranted = {
-            requestLocation()
-          },
+          onLocationPermissionGranted = { requestLocation() },
+          onToggleUserType = viewModel::onToggleUserType,
         )
       }
     }

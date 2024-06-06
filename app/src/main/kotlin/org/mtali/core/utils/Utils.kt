@@ -20,6 +20,7 @@ import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -71,6 +72,8 @@ fun String.capitalizeWords(): String =
 fun newUUID() = "${UUID.randomUUID()}"
 
 fun isDebug() = BuildConfig.DEBUG
+
+fun Job?.isRunning() = this?.isActive == true
 
 fun <T1, T2> combineTuple(f1: Flow<T1>, f2: Flow<T2>) = combine(f1, f2) { t1, t2 -> Pair(t1, t2) }
 

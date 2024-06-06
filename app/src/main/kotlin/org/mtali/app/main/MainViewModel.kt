@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -30,6 +31,7 @@ import org.mtali.core.domain.LogoutUseCase
 import org.mtali.core.models.Location
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
+import org.mtali.core.utils.isRunning
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,6 +41,8 @@ class MainViewModel @Inject constructor(
   private val deviceRepository: DeviceRepository,
   private val logoutUseCase: LogoutUseCase,
 ) : ViewModel() {
+
+  private var toggleStateJob: Job? = null
 
   val uiState = combine(firebaseAuthRepository.currentUser, streamUserRepository.streamUser) { firebase, stream ->
     if (firebase != null && stream == null) reAuthStream(firebase.userId)
@@ -59,6 +63,12 @@ class MainViewModel @Inject constructor(
 
   fun updatePassengerLocation(latLng: LatLng) {
     viewModelScope.launch { deviceRepository.updateLocation(latLng.asLocation()) }
+  }
+
+  fun onToggleUserType() {
+    if (toggleStateJob.isRunning()) return
+    toggleStateJob = viewModelScope.launch {
+    }
   }
 
   private suspend fun reAuthStream(userId: String) {

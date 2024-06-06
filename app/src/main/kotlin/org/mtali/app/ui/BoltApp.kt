@@ -21,6 +21,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.SwitchRight
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.HorizontalDivider
@@ -81,6 +83,7 @@ fun BoltApp(
   onLogout: () -> Unit,
   shouldShowRequestPermissionRationale: () -> Boolean,
   onLocationPermissionGranted: () -> Unit,
+  onToggleUserType: () -> Unit,
 ) {
   val backStack by appState.backStack.collectAsStateWithLifecycle()
 
@@ -140,7 +143,7 @@ fun BoltApp(
     drawerState = drawerState,
     gesturesEnabled = drawerState.isOpen,
     drawerContent = {
-      DrawerContent(drawerState = drawerState, onLogout = onLogout)
+      DrawerContent(drawerState = drawerState, onLogout = onLogout, onToggleUserType = onToggleUserType)
     },
   ) {
     Scaffold(
@@ -227,6 +230,7 @@ private fun DrawerContent(
   modifier: Modifier = Modifier,
   drawerState: DrawerState,
   onLogout: () -> Unit,
+  onToggleUserType: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
   ModalDrawerSheet(modifier = modifier) {
@@ -247,6 +251,21 @@ private fun DrawerContent(
       onClick = {
         scope.launch { drawerState.close() }.invokeOnCompletion {
           onLogout()
+        }
+      },
+    )
+
+    Spacer(modifier = Modifier.weight(1f))
+
+    NavigationDrawerItem(
+      label = { Text(text = "Switch to Driver ") },
+      icon = {
+        Icon(imageVector = Icons.Outlined.SwitchRight, contentDescription = "switch")
+      },
+      selected = false,
+      onClick = {
+        scope.launch { drawerState.close() }.invokeOnCompletion {
+          onToggleUserType()
         }
       },
     )
