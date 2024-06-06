@@ -39,8 +39,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.sharp.Search
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +49,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -74,12 +71,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
-import org.mtali.core.designsystem.components.DrawerMenu
 import org.mtali.core.designsystem.components.Height
+import org.mtali.core.designsystem.components.MapDashboard
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
@@ -131,100 +125,63 @@ private fun PassengerScreen(
   uiState: PassengerUiState,
   onCancelRide: () -> Unit,
 ) {
-  var fullHeight by remember { mutableStateOf(false) }
-
   val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
-  val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
-  val progress = sheetState.progress()
-  val corner = if (progress > 0.85f) 0.dp else DEFAULT_CORNER
+  var sheetFillHeight by remember { mutableStateOf(false) }
 
-  LaunchedEffect(Unit) { sheetState.expand() }
-
-  Box(
-    modifier = Modifier.fillMaxSize(),
-  ) {
-    BottomSheetScaffold(
-      sheetContent = {
-        Column(modifier = Modifier.animateContentSize()) {
-          when (uiState) {
-            is PassengerUiState.RideInactive -> {
-              Column(modifier = if (fullHeight) Modifier.fillMaxSize() else Modifier) {
-                LocationSearch(
-                  progress = progress,
-                  onClickSearch = { fullHeight = true },
-                  onClickClose = { fullHeight = false },
-                  sheetExpanded = fullHeight,
-                  destinationQuery = destinationQuery,
-                  onDestinationQueryChange = onDestinationQueryChange,
-                  autoCompletePlaces = autoCompletePlaces,
-                  onClickPlaceAutoComplete = onClickPlaceAutoComplete,
-                )
-              }
-            }
-
-            is PassengerUiState.SearchingForDriver -> {
-              SearchingForDriver(
-                onCancelRide = {
-                  fullHeight = false
-                  onCancelRide()
-                },
-              )
-            }
-
-            is PassengerUiState.PassengerPickUp -> {
-            }
-
-            is PassengerUiState.EnRoute -> {
-            }
-
-            is PassengerUiState.Arrive -> {
-            }
-
-            is PassengerUiState.Error -> {
-            }
-
-            is PassengerUiState.Loading -> {
-            }
+  MapDashboard(
+    modifier = Modifier,
+    onMapLoaded = onMapLoaded,
+    sheetState = sheetState,
+    onClickDrawerMenu = onClickDrawerMenu,
+    sheetFillHeight = sheetFillHeight,
+    forceShowDragHandle = uiState !is PassengerUiState.RideInactive,
+    locationPermissionGranted = locationPermissionGranted,
+    showDrawerMenu = if (uiState is PassengerUiState.RideInactive) !sheetFillHeight else true,
+    mapContent = {
+    },
+    sheetContent = {
+      when (uiState) {
+        is PassengerUiState.RideInactive -> {
+          Column(modifier = if (sheetFillHeight) Modifier.fillMaxSize() else Modifier) {
+            LocationSearch(
+              progress = sheetState.progress(),
+              onClickSearch = { sheetFillHeight = true },
+              onClickClose = { sheetFillHeight = false },
+              sheetExpanded = sheetFillHeight,
+              destinationQuery = destinationQuery,
+              onDestinationQueryChange = onDestinationQueryChange,
+              autoCompletePlaces = autoCompletePlaces,
+              onClickPlaceAutoComplete = onClickPlaceAutoComplete,
+            )
           }
         }
-      },
-      sheetShape = RoundedCornerShape(topEnd = corner, topStart = corner),
-      modifier = Modifier.fillMaxSize(),
-      scaffoldState = scaffoldState,
-      sheetDragHandle = {
-        if (!fullHeight || uiState !is PassengerUiState.RideInactive) {
-          BottomSheetDefaults.DragHandle()
+
+        is PassengerUiState.SearchingForDriver -> {
+          SearchingForDriver(
+            onCancelRide = {
+              sheetFillHeight = false
+              onCancelRide()
+            },
+          )
         }
-      },
-    ) {
-      Map(onMapLoaded = onMapLoaded, locationPermissionGranted = locationPermissionGranted)
-    }
 
-    DrawerMenu(
-      modifier = Modifier
-        .align(Alignment.TopStart)
-        .padding(16.dp),
-      visible = if (uiState is PassengerUiState.RideInactive) !fullHeight else true,
-      onClick = onClickDrawerMenu,
-    )
-  }
-}
+        is PassengerUiState.PassengerPickUp -> {
+        }
 
-@Composable
-private fun Map(
-  modifier: Modifier = Modifier,
-  onMapLoaded: () -> Unit,
-  locationPermissionGranted: Boolean,
-) {
-  val cameraPositionState = rememberCameraPositionState {}
+        is PassengerUiState.EnRoute -> {
+        }
 
-  GoogleMap(
-    modifier = modifier.fillMaxSize(),
-    cameraPositionState = cameraPositionState,
-    onMapLoaded = onMapLoaded,
-    properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
-  ) {
-  }
+        is PassengerUiState.Arrive -> {
+        }
+
+        is PassengerUiState.Error -> {
+        }
+
+        is PassengerUiState.Loading -> {
+        }
+      }
+    },
+  )
 }
 
 @Composable
@@ -413,8 +370,4 @@ private fun LazyListScope.searchDummy(progress: Float, onClickSearch: () -> Unit
       }
     }
   }
-}
-
-@Composable
-private fun DriverArrived() {
 }
