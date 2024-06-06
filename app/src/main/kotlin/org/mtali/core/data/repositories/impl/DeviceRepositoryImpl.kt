@@ -17,12 +17,12 @@ package org.mtali.core.data.repositories.impl
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.datastore.PreferenceDataStore
 import org.mtali.core.dispatcher.BoltDispatchers.IO
 import org.mtali.core.dispatcher.Dispatcher
+import org.mtali.core.models.DevicePrefs
 import org.mtali.core.models.Location
 import javax.inject.Inject
 
@@ -31,9 +31,13 @@ class DeviceRepositoryImpl @Inject constructor(
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : DeviceRepository {
 
-  override val deviceLocation: Flow<Location?> = prefsDataStore.devicePrefs.map { it.deviceLocation }
+  override val devicePrefs: Flow<DevicePrefs> = prefsDataStore.devicePrefs
 
   override suspend fun updateLocation(location: Location) = withContext(ioDispatcher) {
     prefsDataStore.updateLocation(location)
+  }
+
+  override suspend fun toggleUserType() = withContext(ioDispatcher) {
+    prefsDataStore.toggleUserType()
   }
 }

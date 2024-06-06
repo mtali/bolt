@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 import org.mtali.R
 import org.mtali.app.main.MainUiState
 import org.mtali.app.navigator.BoltNavHost
+import org.mtali.core.models.UserType
 import org.mtali.core.utils.areLocationPermissionGranted
 import org.mtali.core.utils.devicePermissionStatus
 import org.mtali.core.utils.openSettings
@@ -143,7 +144,14 @@ fun BoltApp(
     drawerState = drawerState,
     gesturesEnabled = drawerState.isOpen,
     drawerContent = {
-      DrawerContent(drawerState = drawerState, onLogout = onLogout, onToggleUserType = onToggleUserType)
+      if (uiState is MainUiState.Success) {
+        DrawerContent(
+          userType = uiState.userType,
+          drawerState = drawerState,
+          onLogout = onLogout,
+          onToggleUserType = onToggleUserType,
+        )
+      }
     },
   ) {
     Scaffold(
@@ -228,6 +236,7 @@ private fun LoadingPage(modifier: Modifier = Modifier) {
 @Composable
 private fun DrawerContent(
   modifier: Modifier = Modifier,
+  userType: UserType,
   drawerState: DrawerState,
   onLogout: () -> Unit,
   onToggleUserType: () -> Unit,
@@ -243,7 +252,10 @@ private fun DrawerContent(
     HorizontalDivider()
 
     NavigationDrawerItem(
-      label = { Text(text = "Switch to Driver ") },
+      label = {
+        val text = if (userType == UserType.DRIVER) R.string.switch_to_passenger else R.string.switch_to_driver
+        Text(text = stringResource(id = text))
+      },
       icon = {
         Icon(imageVector = Icons.Outlined.SwitchRight, contentDescription = "switch")
       },

@@ -22,6 +22,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
@@ -31,6 +33,7 @@ import org.mtali.core.domain.LogoutUseCase
 import org.mtali.core.models.Location
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
+import org.mtali.core.models.UserType
 import org.mtali.core.utils.isRunning
 import javax.inject.Inject
 
@@ -44,10 +47,16 @@ class MainViewModel @Inject constructor(
 
   private var toggleStateJob: Job? = null
 
-  val uiState = combine(firebaseAuthRepository.currentUser, streamUserRepository.streamUser) { firebase, stream ->
+  private val _userType = deviceRepository.devicePrefs.map { it.userType }.distinctUntilChanged()
+
+  val uiState = combine(
+    firebaseAuthRepository.currentUser,
+    streamUserRepository.streamUser,
+    _userType,
+  ) { firebase, stream, userType ->
     if (firebase != null && stream == null) reAuthStream(firebase.userId)
     val isLoggedIn = firebase != null && stream != null
-    MainUiState.Success(isLoggedIn = isLoggedIn)
+    MainUiState.Success(isLoggedIn = isLoggedIn, userType = userType)
   }
     .stateIn(
       scope = viewModelScope,
@@ -67,8 +76,7 @@ class MainViewModel @Inject constructor(
 
   fun onToggleUserType() {
     if (toggleStateJob.isRunning()) return
-    toggleStateJob = viewModelScope.launch {
-    }
+    toggleStateJob = viewModelScope.launch { deviceRepository.toggleUserType() }
   }
 
   private suspend fun reAuthStream(userId: String) {
@@ -82,7 +90,10 @@ class MainViewModel @Inject constructor(
 
 sealed interface MainUiState {
   data object Loading : MainUiState
-  data class Success(val isLoggedIn: Boolean = false) : MainUiState
+  data class Success(
+    val isLoggedIn: Boolean = false,
+    val userType: UserType,
+  ) : MainUiState
 }
 
 private fun LatLng.asLocation() = Location(lat = latitude, lng = longitude)

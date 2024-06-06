@@ -69,7 +69,7 @@ class PassengerViewModel @Inject constructor(
   private val _destinationQuery = MutableStateFlow("")
   val destinationQuery: StateFlow<String> = _destinationQuery
 
-  private val deviceLocation = deviceRepository.deviceLocation
+  private val devicePrefs = deviceRepository.devicePrefs
 
   /**
    * Conditions
@@ -267,8 +267,8 @@ class PassengerViewModel @Inject constructor(
             toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES)
           } else {
             Timber.tag(tag).d("get place lat lng: success")
-            deviceLocation.first()?.let { currentLocation ->
-              attemptCreateRide(destLatLng.value, place.address, currentLocation)
+            devicePrefs.first().deviceLocation?.let {
+              attemptCreateRide(destLatLng.value, place.address, it)
             }
           }
         }
