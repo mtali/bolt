@@ -214,7 +214,7 @@ private fun PassengerScreen(
       modifier = Modifier
         .align(Alignment.TopStart)
         .padding(16.dp),
-      visible = !sheetExpanded || uiState !is PassengerUiState.RideInactive,
+      visible = if (uiState is PassengerUiState.RideInactive) !fullHeight else true,
       onClick = onClickDrawerMenu,
     )
   }
