@@ -23,6 +23,7 @@
   <string name="signup">Signup</string>
   <string name="here">Here</string>
   <string name="current">Current</string>
+  <string name="cancel">Cancel</string>
   <string name="signup_free">Signup for free</string>
   <string name="need_ride">Need a ride?</string>
   <string name="no_account">No account?</string>
@@ -41,4 +42,6 @@
   <string name="location_must_be_enabled">This app requires device location to be accessible during rides.</string>
   <string name="unable_to_retrieve_coordinates_address">Unable to retrieve coordinates for selected address 😩</string>
   <string name="failed_re_auth">Failed to re-authenticate 🤐</string>
+  <string name="search_driver">Searching for driver</string>
+  <string name="wait_for_driver">Wait for driver to confirm the order</string>
 </resources>

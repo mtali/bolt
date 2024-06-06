@@ -22,10 +22,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,6 +41,8 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,8 +58,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -77,7 +80,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
-import kotlinx.coroutines.launch
 import org.mtali.R
 import org.mtali.core.designsystem.components.DrawerMenu
 import org.mtali.core.designsystem.components.Height
@@ -112,6 +114,8 @@ fun PassengerRoute(
     autoCompletePlaces = autoCompletePlaces,
     onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
     onClickDrawerMenu = onClickDrawerMenu,
+    onCancelRide = viewModel::onCancelRide,
+    uiState = uiState
   )
 }
 
@@ -127,36 +131,78 @@ private fun PassengerScreen(
   autoCompletePlaces: List<PlacesAutoComplete>,
   onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
   onClickDrawerMenu: () -> Unit,
+  uiState: PassengerUiState,
+  onCancelRide: () -> Unit
 ) {
-  val scope = rememberCoroutineScope()
-  val sheetState = rememberStandardBottomSheetState(skipHiddenState = true)
+  var fullHeight by remember { mutableStateOf(false) }
+
+  val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
   val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = sheetState)
   val progress = sheetState.progress()
   val sheetExpanded = sheetState.currentValue == SheetValue.Expanded
   val corner = if (progress > 0.85f) 0.dp else DEFAULT_CORNER
+
+  LaunchedEffect(Unit) { sheetState.expand() }
 
   Box(
     modifier = Modifier.fillMaxSize(),
   ) {
     BottomSheetScaffold(
       sheetContent = {
-        LocationSearch(
-          progress = progress,
-          onClickSearch = { scope.launch { sheetState.expand() } },
-          onClickClose = { scope.launch { sheetState.partialExpand() } },
-          sheetExpanded = sheetExpanded,
-          destinationQuery = destinationQuery,
-          onDestinationQueryChange = onDestinationQueryChange,
-          autoCompletePlaces = autoCompletePlaces,
-          onClickPlaceAutoComplete = onClickPlaceAutoComplete,
-        )
+        Column(modifier = Modifier.animateContentSize()) {
+          when (uiState) {
+            is PassengerUiState.RideInactive -> {
+              Column(modifier = if (fullHeight) Modifier.fillMaxSize() else Modifier) {
+                LocationSearch(
+                  progress = progress,
+                  onClickSearch = { fullHeight = true },
+                  onClickClose = { fullHeight = false },
+                  sheetExpanded = fullHeight,
+                  destinationQuery = destinationQuery,
+                  onDestinationQueryChange = onDestinationQueryChange,
+                  autoCompletePlaces = autoCompletePlaces,
+                  onClickPlaceAutoComplete = onClickPlaceAutoComplete,
+                )
+              }
+            }
+
+            is PassengerUiState.SearchingForDriver -> {
+              SearchingForDriver(
+                onCancelRide = {
+                  fullHeight = false
+                  onCancelRide()
+                }
+              )
+            }
+
+            is PassengerUiState.Arrive -> {
+
+            }
+
+            is PassengerUiState.EnRoute -> {
+
+            }
+
+            is PassengerUiState.Error -> {
+
+            }
+
+            is PassengerUiState.Loading -> {
+
+            }
+
+            is PassengerUiState.PassengerPickUp -> {
+
+            }
+          }
+        }
       },
-      sheetPeekHeight = 120.dp,
+//      sheetPeekHeight = 120.dp,
       sheetShape = RoundedCornerShape(topEnd = corner, topStart = corner),
       modifier = Modifier.fillMaxSize(),
       scaffoldState = scaffoldState,
       sheetDragHandle = {
-        if (!sheetExpanded) {
+        if (!fullHeight || uiState !is PassengerUiState.RideInactive) {
           BottomSheetDefaults.DragHandle()
         }
       },
@@ -168,7 +214,7 @@ private fun PassengerScreen(
       modifier = Modifier
         .align(Alignment.TopStart)
         .padding(16.dp),
-      visible = !sheetExpanded,
+      visible = !sheetExpanded || uiState !is PassengerUiState.RideInactive,
       onClick = onClickDrawerMenu,
     )
   }
@@ -194,6 +240,34 @@ private fun Map(
 }
 
 @Composable
+private fun SearchingForDriver(onCancelRide: () -> Unit) {
+  Column(
+    Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 16.dp)
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.Top
+    ) {
+      Column {
+        Text(text = stringResource(id = R.string.search_driver), fontWeight = FontWeight.Bold, fontSize = 17.sp)
+        Text(text = stringResource(id = R.string.wait_for_driver), fontSize = 14.sp)
+      }
+      Button(onClick = onCancelRide) { Text(text = stringResource(id = R.string.cancel)) }
+    }
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.Center
+    ) {
+      CircularProgressIndicator(modifier = Modifier.size(60.dp))
+    }
+  }
+}
+
+@Composable
 private fun LocationSearch(
   modifier: Modifier = Modifier,
   progress: Float,
@@ -207,7 +281,6 @@ private fun LocationSearch(
 ) {
   LazyColumn(
     modifier = modifier
-      .fillMaxHeight()
       .animateContentSize()
       .padding(horizontal = 16.dp),
   ) {
