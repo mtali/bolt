@@ -94,7 +94,7 @@ fun PassengerRoute(
   val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  LaunchedEffect(key1 = uiState) {
+  LaunchedEffect(uiState) {
     Timber.tag("wakanda:PassengerRoute").d("$uiState")
   }
 
