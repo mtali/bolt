@@ -15,6 +15,8 @@
  */
 package org.mtali.features.driver
 
+import com.google.maps.model.DirectionsRoute
+
 sealed interface DriverUiState {
   data object SearchingForPassengers : DriverUiState
 
@@ -28,6 +30,7 @@ sealed interface DriverUiState {
     val destinationAddress: String,
     val passengerName: String,
     val totalMessages: Int,
+    val directionsRoute: DirectionsRoute?
   ) : DriverUiState
 
   data class EnRoute(

@@ -18,8 +18,8 @@ package org.mtali.features.driver
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.model.DirectionsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.getstream.chat.android.client.channel.state.ChannelState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.mtali.core.data.repositories.DeviceRepository
+import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.domain.GetUserUseCase
 import org.mtali.core.domain.LogoutUseCase
@@ -52,6 +53,7 @@ class DriverViewModel @Inject constructor(
   private val getUserUseCase: GetUserUseCase,
   private val logoutUseCase: LogoutUseCase,
   private val rideRepository: RideRepository,
+  private val googleRepository: GoogleRepository,
   deviceRepository: DeviceRepository,
 ) : ViewModel() {
 
@@ -67,8 +69,6 @@ class DriverViewModel @Inject constructor(
   private var refreshPassengersJob: Job? = null
 
   private var rideSelectedJob: Job? = null
-
-  private val _channelState = MutableStateFlow<ChannelState?>(null)
 
   val uiState = combineTuple(
     _ride,
@@ -86,10 +86,10 @@ class DriverViewModel @Inject constructor(
       when {
         // Not active on a ride
         ride == null -> DriverUiState.SearchingForPassengers
-
         ride.status == RideStatus.PASSENGER_PICK_UP.value &&
           ride.driverLatitude != null &&
           ride.driverLongitude != null -> {
+          val directionsRoute = getDirectionsRoute(ride)
           DriverUiState.PassengerPickUp(
             passengerLat = ride.passengerLatitude,
             passengerLng = ride.passengerLongitude,
@@ -100,6 +100,7 @@ class DriverViewModel @Inject constructor(
             destinationAddress = ride.destinationAddress,
             passengerName = ride.passengerName,
             totalMessages = ride.totalMessages,
+            directionsRoute = directionsRoute
           )
         }
 
@@ -187,6 +188,23 @@ class DriverViewModel @Inject constructor(
           getActiveRideIfExist(driverResult.value)
         }
       }
+    }
+  }
+
+  private suspend fun getDirectionsRoute(ride: Ride): DirectionsRoute? {
+    val directions = googleRepository.getDirectionsRoute(
+      originLat = ride.driverLatitude!!,
+      originLng = ride.driverLongitude!!,
+      destLat = ride.destinationLatitude,
+      destLng = ride.destinationLongitude,
+    )
+    return when (directions) {
+      is ServiceResult.Failure -> {
+        toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
+        null
+      }
+
+      is ServiceResult.Value -> directions.value
     }
   }
 
