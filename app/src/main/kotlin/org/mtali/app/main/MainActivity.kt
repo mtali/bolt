@@ -110,7 +110,7 @@ class MainActivity : ComponentActivity() {
           val location = request.result
           val lat = location.latitude
           val lon = location.longitude
-          viewModel.updatePassengerLocation(LatLng(lat, lon))
+          viewModel.updateDeviceLocation(LatLng(lat, lon))
         } else {
           Timber.e(request.exception)
           Toast.makeText(

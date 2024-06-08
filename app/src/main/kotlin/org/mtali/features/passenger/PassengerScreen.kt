@@ -15,6 +15,7 @@
  */
 package org.mtali.features.passenger
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -47,6 +48,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberStandardBottomSheetState
@@ -113,6 +115,7 @@ fun PassengerRoute(
   )
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun PassengerScreen(
@@ -126,68 +129,70 @@ private fun PassengerScreen(
   uiState: PassengerUiState,
   onCancelRide: () -> Unit,
 ) {
-  val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
-  var sheetFillHeight by remember { mutableStateOf(false) }
+  Scaffold {
+    val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
+    var sheetFillHeight by remember { mutableStateOf(false) }
 
-  Dashboard(
-    modifier = Modifier,
-    sheetState = sheetState,
-    onClickDrawerMenu = onClickDrawerMenu,
-    sheetFillHeight = sheetFillHeight,
-    forceShowDragHandle = uiState !is PassengerUiState.RideInactive,
-    showDrawerMenu = if (uiState is PassengerUiState.RideInactive) !sheetFillHeight else true,
-    sheetContent = {
-      when (uiState) {
-        is PassengerUiState.RideInactive -> {
-          Column(modifier = if (sheetFillHeight) Modifier.fillMaxSize() else Modifier) {
-            LocationSearch(
-              progress = sheetState.progress(),
-              onClickSearch = { sheetFillHeight = true },
-              onClickClose = { sheetFillHeight = false },
-              sheetExpanded = sheetFillHeight,
-              destinationQuery = destinationQuery,
-              onDestinationQueryChange = onDestinationQueryChange,
-              autoCompletePlaces = autoCompletePlaces,
-              onClickPlaceAutoComplete = onClickPlaceAutoComplete,
+    Dashboard(
+      modifier = Modifier.padding(it),
+      sheetState = sheetState,
+      onClickDrawerMenu = onClickDrawerMenu,
+      sheetFillHeight = sheetFillHeight,
+      forceShowDragHandle = uiState !is PassengerUiState.RideInactive,
+      showDrawerMenu = if (uiState is PassengerUiState.RideInactive) !sheetFillHeight else true,
+      sheetContent = {
+        when (uiState) {
+          is PassengerUiState.RideInactive -> {
+            Column(modifier = if (sheetFillHeight) Modifier.fillMaxSize() else Modifier) {
+              LocationSearch(
+                progress = sheetState.progress(),
+                onClickSearch = { sheetFillHeight = true },
+                onClickClose = { sheetFillHeight = false },
+                sheetExpanded = sheetFillHeight,
+                destinationQuery = destinationQuery,
+                onDestinationQueryChange = onDestinationQueryChange,
+                autoCompletePlaces = autoCompletePlaces,
+                onClickPlaceAutoComplete = onClickPlaceAutoComplete,
+              )
+            }
+          }
+
+          is PassengerUiState.SearchingForDriver -> {
+            SearchingForDriver(
+              onCancelRide = {
+                sheetFillHeight = false
+                onCancelRide()
+              },
             )
           }
-        }
 
-        is PassengerUiState.SearchingForDriver -> {
-          SearchingForDriver(
-            onCancelRide = {
-              sheetFillHeight = false
-              onCancelRide()
-            },
-          )
-        }
+          is PassengerUiState.PassengerPickUp -> {
+          }
 
-        is PassengerUiState.PassengerPickUp -> {
-        }
+          is PassengerUiState.EnRoute -> {
+          }
 
-        is PassengerUiState.EnRoute -> {
-        }
+          is PassengerUiState.Arrive -> {
+          }
 
-        is PassengerUiState.Arrive -> {
-        }
+          is PassengerUiState.Error -> {
+          }
 
-        is PassengerUiState.Error -> {
+          is PassengerUiState.Loading -> {
+          }
         }
-
-        is PassengerUiState.Loading -> {
-        }
-      }
-    },
-    content = {
-      val cameraPositionState = rememberCameraPositionState()
-      GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        onMapLoaded = onMapLoaded,
-        properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
-      )
-    },
-  )
+      },
+      content = {
+        val cameraPositionState = rememberCameraPositionState()
+        GoogleMap(
+          modifier = Modifier.fillMaxSize(),
+          cameraPositionState = cameraPositionState,
+          onMapLoaded = onMapLoaded,
+          properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+        )
+      },
+    )
+  }
 }
 
 @Composable

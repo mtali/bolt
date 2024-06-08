@@ -38,6 +38,7 @@ import org.mtali.core.utils.isRunning
 import org.mtali.features.driver.navigation.driverRoute
 import org.mtali.features.login.navigation.navigation.loginRoute
 import org.mtali.features.passenger.navigation.passengerRoute
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -73,7 +74,8 @@ class MainViewModel @Inject constructor(
     firebaseAuthRepository.logout()
   }
 
-  fun updatePassengerLocation(latLng: LatLng) {
+  fun updateDeviceLocation(latLng: LatLng) {
+    Timber.tag("wakanda:MainViewModel").d("Location: ${latLng.asLocation()}")
     viewModelScope.launch { deviceRepository.updateLocation(latLng.asLocation()) }
   }
 

@@ -132,6 +132,7 @@ dependencies {
   implementation(libs.stream)
   implementation(libs.stream.client)
   implementation(libs.stream.offline)
+  implementation(libs.stream.state)
 
   // Testing
   testImplementation(libs.junit)

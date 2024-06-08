@@ -41,6 +41,7 @@ import org.mtali.core.keys.KEY_DEST_LAT
 import org.mtali.core.keys.KEY_DEST_LON
 import org.mtali.core.keys.KEY_DRIVER_ID
 import org.mtali.core.keys.KEY_DRIVER_LAT
+import org.mtali.core.keys.KEY_DRIVER_LON
 import org.mtali.core.keys.KEY_DRIVER_NAME
 import org.mtali.core.keys.KEY_PASSENGER_ID
 import org.mtali.core.keys.KEY_PASSENGER_LAT
@@ -48,6 +49,7 @@ import org.mtali.core.keys.KEY_PASSENGER_LON
 import org.mtali.core.keys.KEY_PASSENGER_NAME
 import org.mtali.core.keys.KEY_STATUS
 import org.mtali.core.keys.STREAM_CHANNEL_TYPE_LIVESTREAM
+import org.mtali.core.models.BoltUser
 import org.mtali.core.models.CreateRide
 import org.mtali.core.models.Ride
 import org.mtali.core.models.RideStatus
@@ -72,7 +74,7 @@ class RideRepositoryImpl @Inject constructor(
   override fun openRides(): Flow<ServiceResult<List<Ride>>> = _openRides
 
   override suspend fun getRideIfInProgress(): ServiceResult<String?> = withContext(ioDispatcher) {
-    Timber.tag(tag).d("start.. check ride")
+    Timber.tag(tag).d("getRideIfInProgress() :-> called")
     val currentUserId = client.getCurrentUser()?.id ?: ""
     val request = QueryChannelsRequest(
       filter = Filters.`in`("members", currentUserId),
@@ -83,22 +85,22 @@ class RideRepositoryImpl @Inject constructor(
     if (result.isSuccess) {
       val channels = result.getOrNull() ?: emptyList()
       if (channels.isEmpty()) {
-        Timber.tag(tag).d("end.. check ride: no ride exits")
+        Timber.tag(tag).d("getRideIfInProgress() :-> no ride/channel exist")
         ServiceResult.Value(null)
       } else {
         channels.first().let {
-          Timber.tag(tag).d("end.. check ride: yes -> '${it.cid}'")
+          Timber.tag(tag).d("getRideIfInProgress() :-> channel found cid=${it.cid}")
           ServiceResult.Value(it.cid)
         }
       }
     } else {
-      Timber.tag(tag).d("end.. check ride: failed")
+      Timber.tag(tag).e("getRideIfInProgress() :-> failed with ${result.errorOrNull()}")
       ServiceResult.Failure(Exception(result.errorOrNull()?.message))
     }
   }
 
   override suspend fun createRide(createRide: CreateRide): ServiceResult<String> {
-    Timber.tag(tag).d("start.. create ride")
+    Timber.tag(tag).d("createRide() :-> called")
     val channelId = newUUID()
     val result = client.createChannel(
       channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
@@ -117,43 +119,35 @@ class RideRepositoryImpl @Inject constructor(
     ).await()
     val cid = result.getOrNull()?.cid
     return if (cid != null) {
-      Timber.tag(tag).d("end.. create ride: success $cid")
+      Timber.tag(tag).d("createRide() :-> ride created with cid=$cid")
       ServiceResult.Value(cid)
     } else {
-      Timber.tag(tag).d("end.. create ride: failed ")
+      Timber.tag(tag).e("createRide() :-> failed to create ride with error ${result.errorOrNull()}")
       ServiceResult.Failure(Exception(result.errorOrNull()?.message))
     }
   }
 
   override suspend fun observeRideById(rideId: String): Unit = withContext(ioDispatcher) {
-    Timber.tag(tag).d("start.. observe ride[$rideId]")
+    Timber.tag(tag).d("observeRideById(rideId=$rideId) :-> called")
     val channelClient = client.channel(cid = rideId)
 
-    Timber.tag(tag).d("start.. observe ride[$rideId]: add member to channel/ride")
+    Timber.tag(tag).d("observeRideById() :-> adding member ${client.getCurrentUser()?.id} to channel")
     val result = channelClient.addMembers(listOf(client.getCurrentUser()?.id ?: "")).await()
 
-    if (result.isSuccess) {
+    result.onSuccessSuspend { channel ->
+      Timber.tag(tag).d("observeRideById() :-> member added")
       observeChannelEvents(channelClient)
+      _rideUpdates.emit(ServiceResult.Value(streamChannelToRide(channel)))
+    }
 
-      result.onSuccessSuspend { channel ->
-        Timber.tag(tag).d("cont.. observe ride[$rideId]: member added")
-        _rideUpdates.emit(ServiceResult.Value(streamChannelToRide(channel)))
-      }
-
-      result.onErrorSuspend {
-        val error = result.errorOrNull()!!
-        Timber.tag(tag).d("cont.. observe ride[$rideId]: add member failed ${error.message}")
-        _rideUpdates.emit(ServiceResult.Failure(Exception(error.message)))
-      }
-    } else {
-      val error = result.errorOrNull()!!
-      Timber.tag(tag).d("cont.. observe ride[$rideId]: add member failed ${error.message}")
+    result.onErrorSuspend { error ->
+      Timber.tag(tag).e("observeRideById() :-> failed to add member with error $error")
       _rideUpdates.emit(ServiceResult.Failure(Exception(error.message)))
     }
   }
 
   override suspend fun observeOpenRides() = withContext(ioDispatcher) {
-    Timber.tag(tag).d("start.. observe open ride")
+    Timber.tag(tag).d("observeOpenRides() :-> called")
     val request = QueryChannelsRequest(
       filter = Filters.and(Filters.eq(KEY_STATUS, RideStatus.SEARCHING_FOR_DRIVER.value)),
       querySort = QuerySortByField.descByName(FILTER_CREATED_AT),
@@ -161,16 +155,16 @@ class RideRepositoryImpl @Inject constructor(
     )
     val result = client.queryChannels(request).await()
     if (result.isSuccess) {
-      Timber.tag(tag).d("start.. observe open ride: success")
+      Timber.tag(tag).d("observeOpenRides() :-> success")
       _openRides.emit(ServiceResult.Value(result.getOrNull()!!.map { streamChannelToRide(it) }))
     } else {
-      Timber.tag(tag).d("start.. observe open ride: failed")
+      Timber.tag(tag).e("observeOpenRides() :-> failed with error ${result.errorOrNull()}")
       _openRides.emit(ServiceResult.Failure(Exception(result.errorOrNull()?.message)))
     }
   }
 
   override suspend fun cancelRide(): ServiceResult<Unit> = withContext(ioDispatcher) {
-    Timber.tag(tag).d("start.. cancel ride")
+    Timber.tag(tag).d("cancelRide() :-> called")
     val currentUserId = client.getCurrentUser()?.id ?: ""
     val request = QueryChannelsRequest(
       filter = Filters.`in`("members", currentUserId),
@@ -181,42 +175,44 @@ class RideRepositoryImpl @Inject constructor(
     if (result.isSuccess) {
       val channels = result.getOrNull() ?: emptyList()
       if (channels.isEmpty()) {
-        Timber.tag(tag).d("end.. cancel ride: no channels/rides to cancel")
-        ServiceResult.Failure(Exception("Failed tp retrieve channel/ride for cancellation"))
+        Timber.tag(tag).w("cancelRide() :-> no channel/ride to cancel")
+        ServiceResult.Value(Unit)
       } else {
         val channelClient = client.channel(cid = channels.first().cid)
         if (channelClient.hide().await().isSuccess) {
-          Timber.tag(tag).d("cont.. cancel ride: channel/ride hidden about to be deleted")
+          Timber.tag(tag).e("cancelRide() :-> channel/ride hidden")
           val deleteResult = channelClient.delete().await()
           if (deleteResult.isSuccess) {
-            Timber.tag(tag).d("end.. cancel ride: channel/ride deleted")
+            Timber.tag(tag).d("cancelRide() :-> channel/ride deleted")
             _rideUpdates.emit(ServiceResult.Value(null))
             ServiceResult.Value(Unit)
           } else {
-            Timber.tag(tag).d("end.. cancel ride: failed tp delete channel")
+            Timber.tag(tag).e("cancelRide() :-> failed tp delete channel/ride")
             ServiceResult.Failure(Exception(result.errorOrNull()?.message))
           }
         } else {
-          Timber.tag(tag).d("end.. cancel ride: failed to hide channel/ride")
+          Timber.tag(tag).e("cancelRide() :-> failed to hide channel/ride")
           ServiceResult.Failure(Exception("Unable to hide channel"))
         }
       }
     } else {
+      Timber.tag(tag).e("cancelRide() :-> failed to retrieve channel")
       ServiceResult.Failure(Exception(result.errorOrNull()?.message))
     }
   }
 
+  // TODO: Pass ride id only
   override suspend fun completeRide(ride: Ride): ServiceResult<Unit> {
-    Timber.tag(tag).d("start.. completeRide")
+    Timber.tag(tag).d("completeRide(${ride.rideId}) :-> called")
     val channelClient = client.channel(cid = ride.rideId)
     channelClient.delete().await()
-    Timber.tag(tag).d("end.. completeRide: ride deleted")
+    Timber.tag(tag).d("completeRide(${ride.rideId}) :-> done")
     return ServiceResult.Value(Unit)
   }
 
   override suspend fun advanceRide(rideId: String, newState: String): ServiceResult<Unit> =
     withContext(ioDispatcher) {
-      Timber.tag(tag).d("start.. advance ride to $newState")
+      Timber.tag(tag).d("advanceRide(id=$rideId, to=$newState) :-> start")
       val advanceRide = client.updateChannelPartial(
         channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
         channelId = getChannelIdOnly(rideId),
@@ -225,17 +221,18 @@ class RideRepositoryImpl @Inject constructor(
         ),
       ).await()
       if (advanceRide.isSuccess) {
-        Timber.tag(tag).d("end.. advance ride to $newState: ride advanced")
+        Timber.tag(tag).d("advanceRide() :-> advanced")
         ServiceResult.Value(Unit)
       } else {
-        Timber.tag(tag).d("end.. advance ride to $newState: ride failed to advance")
+        Timber.tag(tag).d("advanceRide() :-> failed to advance with error ${advanceRide.errorOrNull()}")
         ServiceResult.Failure(Exception(advanceRide.errorOrNull()?.message))
       }
     }
 
+  // TODO: Pass ride id
   override suspend fun updateDriverLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit> =
     withContext(ioDispatcher) {
-      Timber.tag(tag).d("start.. update driver location")
+      Timber.tag(tag).d("updateDriverLocation(rideId-${ride.rideId}, lat=$lat, lng=$lng) :-> called")
       val updateRide = client.updateChannelPartial(
         channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
         channelId = getChannelIdOnly(ride.rideId),
@@ -248,7 +245,7 @@ class RideRepositoryImpl @Inject constructor(
         // Update will trigger event global but not locally
         val currentRide = _rideUpdates.value
         if (currentRide is ServiceResult.Value && currentRide.value != null) {
-          Timber.tag(tag).d("end.. update driver location: successful")
+          Timber.tag(tag).d("updateDriverLocation() :-> channel/ride updated")
           _rideUpdates.value = ServiceResult.Value(
             currentRide.value.copy(
               driverLatitude = lat,
@@ -258,14 +255,14 @@ class RideRepositoryImpl @Inject constructor(
         }
         ServiceResult.Value(Unit)
       } else {
-        Timber.tag(tag).d("end.. update driver location: failed to update location")
+        Timber.tag(tag).e("updateDriverLocation() :-> failed to update ride with error ${updateRide.errorOrNull()}")
         ServiceResult.Failure(Exception(updateRide.errorOrNull()?.message))
       }
     }
 
   override suspend fun updatePassengerLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit> =
     withContext(ioDispatcher) {
-      Timber.tag(tag).d("start.. update passenger location")
+      Timber.tag(tag).d("updatePassengerLocation(rideId-${ride.rideId}, lat=$lat, lng=$lng) :-> called")
       val updateRide = client.updateChannelPartial(
         channelType = STREAM_CHANNEL_TYPE_LIVESTREAM,
         channelId = getChannelIdOnly(ride.rideId),
@@ -276,7 +273,7 @@ class RideRepositoryImpl @Inject constructor(
       ).await()
       if (updateRide.isSuccess) {
         // Update will trigger event global but not locally
-        Timber.tag(tag).d("end.. update passenger location: success -< update local cache")
+        Timber.tag(tag).d("updatePassengerLocation() :-> location updated, now updating local ride/channel cache")
         val currentRide = _rideUpdates.value
         if (currentRide is ServiceResult.Value && currentRide.value != null) {
           _rideUpdates.value = ServiceResult.Value(
@@ -288,15 +285,46 @@ class RideRepositoryImpl @Inject constructor(
         }
         ServiceResult.Value(Unit)
       } else {
-        Timber.tag(tag).d("end.. update passenger location: failed to update passenger")
+        Timber.tag(tag).e("updatePassengerLocation() :-> failed to update ride/channel with error ${updateRide.errorOrNull()}")
         ServiceResult.Failure(Exception(updateRide.errorOrNull()?.message))
       }
     }
 
+  override suspend fun connectDriverToRide(ride: Ride, driver: BoltUser): ServiceResult<String> =
+    withContext(ioDispatcher) {
+      Timber.tag(tag).d("connectDriverToRide(ride=${ride.rideId}, driver=${driver.userId}) :-> called")
+      val channelClient = client.channel(cid = ride.rideId)
+      Timber.tag(tag).d("connectDriverToRide() :-> adding driver to ride/channel members")
+      val addToChannel = channelClient.addMembers(listOf(client.getCurrentUser()?.id ?: "")).await()
+      if (addToChannel.isSuccess) {
+        Timber.tag(tag).d("connectDriverToRide() :-> adding driver to ride/channel success .. now updating channel details")
+        val updateDetails = channelClient.updatePartial(
+          set = mapOf(
+            KEY_STATUS to RideStatus.PASSENGER_PICK_UP.value,
+            KEY_DRIVER_ID to driver.userId,
+            KEY_DRIVER_NAME to driver.username,
+            KEY_DRIVER_LAT to ride.driverLatitude!!,
+            KEY_DRIVER_LON to ride.driverLongitude!!,
+          ),
+        ).await()
+        if (updateDetails.isSuccess) {
+          Timber.tag(tag).d("connectDriverToRide() :-> channel/ride updated, we have a driver now")
+          ServiceResult.Value(channelClient.cid)
+        } else {
+          Timber.tag(tag).e("connectDriverToRide() :-> failed to update ride driver info with error ${updateDetails.getOrNull()}")
+          ServiceResult.Failure(Exception(updateDetails.errorOrNull()?.message))
+        }
+      } else {
+        Timber.tag(tag).e("connectDriverToRide() :-> failed add driver to channel/ride members with error ${addToChannel.getOrNull()}")
+        ServiceResult.Failure(Exception(addToChannel.errorOrNull()?.message))
+      }
+    }
+
+  // TODO: Find a way to dispose this
   private fun observeChannelEvents(channelClient: ChannelClient) {
-    Timber.tag(tag).d("start.. observe channel + subscribe to events ${channelClient.cid}")
+    Timber.tag(tag).i("observeChannelEvents() :-> called and subscribed")
     channelClient.subscribe { event ->
-      Timber.tag(tag).d("start.. observe channel ${channelClient.cid}: event $event")
+      Timber.tag(tag).d("observeChannelEvents() :-> received event of type = ${event.type}")
       when (event) {
         is ChannelDeletedEvent -> {
           _rideUpdates.update { ServiceResult.Value(null) }
@@ -320,13 +348,14 @@ class RideRepositoryImpl @Inject constructor(
         }
 
         else -> {
-          Timber.d("Event: $event")
+          Timber.tag(tag).w("observeChannelEvents() :-> event of type = ${event.type} was not processed")
         }
       }
     }
   }
 
   private fun streamChannelToRide(channel: Channel): Ride {
+    Timber.tag(tag).d("streamChannelToRide(cid=${channel.cid}) :-> called")
     val extraData = channel.extraData
 
     val destAddress = extraData[KEY_DEST_ADDRESS] as String?
@@ -334,8 +363,8 @@ class RideRepositoryImpl @Inject constructor(
     val destLng = extraData[KEY_DEST_LON] as Double?
 
     val driverId = extraData[KEY_DRIVER_ID] as String?
-    val driverLat = extraData[KEY_DEST_LAT] as Double?
-    val driverLng = extraData[KEY_DEST_LON] as Double?
+    val driverLat = extraData[KEY_DRIVER_LAT] as Double?
+    val driverLng = extraData[KEY_DRIVER_LON] as Double?
     val driverName = extraData[KEY_DRIVER_NAME] as String?
 
     val passengerId = extraData[KEY_PASSENGER_ID] as String?
@@ -360,7 +389,7 @@ class RideRepositoryImpl @Inject constructor(
       driverName = driverName,
       totalMessages = if (channel.lastMessageAt == null) 0 else 1,
     )
-    Timber.tag(tag).d("end.. channel to ride -> $ride")
+    Timber.tag(tag).d("streamChannelToRide() :-> ride=$ride")
     return ride
   }
 

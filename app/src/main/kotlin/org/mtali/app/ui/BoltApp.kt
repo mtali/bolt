@@ -156,10 +156,10 @@ fun BoltApp(
     Scaffold(
       snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
+      Modifier.padding(innerPadding) //
       Column(
         Modifier
           .fillMaxSize()
-          .padding(innerPadding)
           .windowInsetsPadding(
             WindowInsets.safeDrawing.only(
               WindowInsetsSides.Horizontal,

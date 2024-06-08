@@ -15,57 +15,213 @@
  */
 package org.mtali.features.driver
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.rememberCameraPositionState
-import org.mtali.core.designsystem.components.Dashboard
+import org.mtali.R
+import org.mtali.core.models.Ride
+import org.mtali.core.utils.handleToast
+import timber.log.Timber
 
 @Composable
-fun DriverRoute(locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
+fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
+  val context = LocalContext.current
+
+  viewModel.toastHandler = { context.handleToast(it) }
+
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+  val passengers by viewModel.locationAwarePassengers.collectAsStateWithLifecycle(initialValue = emptyList())
+
+  LaunchedEffect(uiState) {
+    Timber.tag("wakanda:DriverRoute").d("$uiState")
+  }
+
   DriverScreen(
-    onMapLoaded = {},
+    uiState = uiState,
+    passengers = passengers,
+    onMapLoaded = viewModel::onMapLoaded,
     onClickDrawerMenu = onClickDrawerMenu,
     locationPermissionGranted = locationPermissionGranted,
+    onRefreshPassengers = viewModel::onRefreshPassengers,
+    onRideSelected = viewModel::onRideSelected,
   )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 private fun DriverScreen(
+  uiState: DriverUiState,
+  passengers: List<Pair<Ride, LatLng>>,
   onMapLoaded: () -> Unit,
   onClickDrawerMenu: () -> Unit,
   locationPermissionGranted: Boolean,
+  onRefreshPassengers: () -> Unit,
+  onRideSelected: (Ride) -> Unit,
 ) {
-  val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
+  val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { true })
 
-  Dashboard(
-    sheetState = sheetState,
-    onClickDrawerMenu = onClickDrawerMenu,
-    sheetFillHeight = false,
-    forceShowDragHandle = true,
-    showDrawerMenu = true,
-    sheetContent = {
-      Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        Text(text = "Looking for rides")
-      }
+  LaunchedEffect(uiState) {
+    sheetState.expand()
+  }
+
+  Scaffold(
+    topBar = {
+      TopAppBar(
+        title = { Text(text = stringResource(id = R.string.dashboard)) },
+        navigationIcon = {
+          IconButton(onClick = onClickDrawerMenu) {
+            Icon(imageVector = Icons.Outlined.Menu, contentDescription = null)
+          }
+        },
+      )
     },
-    content = {
-      val cameraPositionState = rememberCameraPositionState()
+  ) {
+    Column(modifier = Modifier.fillMaxSize()) {
       GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
+        modifier = Modifier.weight(1f),
         onMapLoaded = onMapLoaded,
         properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
       )
-    },
-  )
+
+      Column(
+        modifier = Modifier
+          .padding(16.dp)
+          .heightIn(min = 100.dp)
+          .animateContentSize(),
+      ) {
+        when (uiState) {
+          is DriverUiState.Arrive -> {
+            ArriveCard()
+          }
+
+          is DriverUiState.EnRoute -> {
+            EnRouteCard()
+          }
+
+          is DriverUiState.Error -> {
+            ErrorCard()
+          }
+
+          is DriverUiState.Loading -> {
+            LoadingCard()
+          }
+
+          is DriverUiState.PassengerPickUp -> {
+            PassengerPickUpCard()
+          }
+
+          is DriverUiState.SearchingForPassengers -> {
+            SearchingForPassengersCard(
+              passengers = passengers,
+              onRefreshPassengers = onRefreshPassengers,
+              onRideSelected = onRideSelected,
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun ArriveCard() {
+  Text(text = "Arrive")
+}
+
+@Composable
+private fun EnRouteCard() {
+  Text(text = "EnRoute")
+}
+
+@Composable
+private fun ErrorCard() {
+  Text(text = "Error")
+}
+
+@Composable
+private fun LoadingCard() {
+  Text(text = "Loading")
+}
+
+@Composable
+private fun PassengerPickUpCard() {
+  Text(text = "Passenger pick up")
+}
+
+@Composable
+private fun SearchingForPassengersCard(
+  passengers: List<Pair<Ride, LatLng>>,
+  onRefreshPassengers: () -> Unit,
+  onRideSelected: (Ride) -> Unit,
+) {
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(text = stringResource(id = R.string.passengers_requests), fontSize = 18.sp)
+      Button(onClick = onRefreshPassengers) {
+        Text(text = stringResource(id = R.string.refresh))
+      }
+    }
+    if (passengers.isEmpty()) {
+      Text(text = stringResource(id = R.string.no_passengers))
+    } else {
+      HorizontalDivider()
+      PassengersList(passengers, onRideSelected)
+    }
+  }
+}
+
+@Composable
+private fun PassengersList(passengers: List<Pair<Ride, LatLng>>, onRideSelected: (Ride) -> Unit) {
+  LazyColumn {
+    items(passengers) { item ->
+      ListItem(
+        modifier = Modifier.clickable { onRideSelected(item.first) },
+        headlineContent = { Text(text = item.first.passengerName) },
+        supportingContent = { Text(text = "Going to: ${item.first.destinationAddress}") },
+      )
+    }
+  }
 }

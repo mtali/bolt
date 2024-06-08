@@ -21,6 +21,8 @@ import dagger.hilt.android.HiltAndroidApp
 import io.getstream.chat.android.client.ChatClient
 import io.getstream.chat.android.client.logger.ChatLogLevel
 import io.getstream.chat.android.offline.plugin.factory.StreamOfflinePluginFactory
+import io.getstream.chat.android.state.plugin.config.StatePluginConfig
+import io.getstream.chat.android.state.plugin.factory.StreamStatePluginFactory
 import org.mtali.BuildConfig
 import timber.log.Timber
 
@@ -40,8 +42,13 @@ class App : Application() {
   private fun initStream() {
     val logLevel = if (org.mtali.core.utils.isDebug()) ChatLogLevel.ALL else ChatLogLevel.ERROR
     val offlinePlugin = StreamOfflinePluginFactory(appContext = this)
+    val statePlugin = StreamStatePluginFactory(
+      config = StatePluginConfig(),
+      appContext = this,
+    )
+
     ChatClient.Builder(BuildConfig.STREAM_KEY, this)
-      .withPlugins(offlinePlugin)
+      .withPlugins(offlinePlugin, statePlugin)
       .logLevel(logLevel)
       .build()
   }

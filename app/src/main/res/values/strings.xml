@@ -19,6 +19,7 @@
   <string name="email">Email</string>
   <string name="name">Name</string>
   <string name="logout">Logout</string>
+  <string name="refresh">Refresh</string>
   <string name="password">Password</string>
   <string name="cont">Continue</string>
   <string name="signup">Signup</string>
@@ -46,4 +47,8 @@
   <string name="wait_for_driver">Wait for driver to confirm the order</string>
   <string name="switch_to_driver">Switch to Driver </string>
   <string name="switch_to_passenger">Switch to Passenger</string>
+  <string name="searching_for_passengers">Searching for passengers</string>
+  <string name="dashboard">Dashboard</string>
+  <string name="passengers_requests">Passengers requests</string>
+  <string name="no_passengers">There are no passengers available currently.</string>
 </resources>

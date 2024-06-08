@@ -16,6 +16,7 @@
 package org.mtali.core.data.repositories
 
 import kotlinx.coroutines.flow.Flow
+import org.mtali.core.models.BoltUser
 import org.mtali.core.models.CreateRide
 import org.mtali.core.models.Ride
 import org.mtali.core.models.ServiceResult
@@ -32,4 +33,5 @@ interface RideRepository {
   suspend fun advanceRide(rideId: String, newState: String): ServiceResult<Unit>
   suspend fun updateDriverLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit>
   suspend fun updatePassengerLocation(ride: Ride, lat: Double, lng: Double): ServiceResult<Unit>
+  suspend fun connectDriverToRide(ride: Ride, driver: BoltUser): ServiceResult<String>
 }

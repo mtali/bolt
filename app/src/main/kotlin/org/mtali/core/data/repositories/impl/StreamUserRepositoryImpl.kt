@@ -91,7 +91,7 @@ class StreamUserRepositoryImpl @Inject constructor(
       val type: String? = extraData[KEY_TYPE] as String?
       val status: String? = extraData[KEY_STATUS] as String?
 
-      if (currentUser.role != "admin") {
+      if (currentUser.role == "user") {
         roleToAdmin(currentUser.id)
       }
 

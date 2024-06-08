@@ -74,6 +74,8 @@ play-location = { module = "com.google.android.gms:play-services-location", vers
 stream = { module = "io.getstream:stream-chat-android-ui-components", version.ref = "stream" }
 stream-client = { module = "io.getstream:stream-chat-android-client", version.ref = "stream" }
 stream-offline = { module = "io.getstream:stream-chat-android-offline", version.ref = "stream" }
+stream-state = { module = "io.getstream:stream-chat-android-state", version.ref = "stream" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
