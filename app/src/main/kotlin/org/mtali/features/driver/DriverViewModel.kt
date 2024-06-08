@@ -69,6 +69,7 @@ class DriverViewModel @Inject constructor(
   private var refreshPassengersJob: Job? = null
   private var rideSelectedJob: Job? = null
   private var cancelRideJob: Job? = null
+  private var advanceRideJob: Job? = null
 
   val uiState = combineTuple(
     _ride,
@@ -86,10 +87,10 @@ class DriverViewModel @Inject constructor(
       when {
         // Not active on a ride
         ride == null -> DriverUiState.SearchingForPassengers
+
         ride.status == RideStatus.PASSENGER_PICK_UP.value &&
           ride.driverLatitude != null &&
           ride.driverLongitude != null -> {
-          val directionsRoute = getDirectionsRoute(ride)
           DriverUiState.PassengerPickUp(
             passengerLat = ride.passengerLatitude,
             passengerLng = ride.passengerLongitude,
@@ -100,13 +101,14 @@ class DriverViewModel @Inject constructor(
             destinationAddress = ride.destinationAddress,
             passengerName = ride.passengerName,
             totalMessages = ride.totalMessages,
-            directionsRoute = directionsRoute,
+            passengerRoute = ride.directionToPassenger(),
           )
         }
 
         ride.status == RideStatus.EN_ROUTE.value &&
           ride.driverLatitude != null &&
           ride.driverLongitude != null -> {
+
           DriverUiState.EnRoute(
             driverLat = ride.driverLatitude,
             driverLng = ride.driverLongitude,
@@ -115,6 +117,7 @@ class DriverViewModel @Inject constructor(
             destinationAddress = ride.destinationAddress,
             passengerName = ride.passengerName,
             totalMessages = ride.totalMessages,
+            destinationRoute = ride.directionToDestination(),
           )
         }
 
@@ -191,12 +194,35 @@ class DriverViewModel @Inject constructor(
     }
   }
 
-  private suspend fun getDirectionsRoute(ride: Ride): DirectionsRoute? {
+  private suspend fun Ride.directionToPassenger(): DirectionsRoute? {
+    return getDirections(
+      orgLat = driverLatitude!!,
+      orgLng = driverLongitude!!,
+      dstLat = passengerLatitude,
+      dstLng = passengerLongitude,
+    )
+  }
+
+  private suspend fun Ride.directionToDestination(): DirectionsRoute? {
+    return getDirections(
+      orgLat = driverLatitude!!,
+      orgLng = driverLongitude!!,
+      dstLat = destinationLatitude,
+      dstLng = destinationLongitude,
+    )
+  }
+
+  private suspend fun getDirections(
+    orgLat: Double,
+    orgLng: Double,
+    dstLat: Double,
+    dstLng: Double,
+  ): DirectionsRoute? {
     val directions = googleRepository.getDirectionsRoute(
-      originLat = ride.driverLatitude!!,
-      originLng = ride.driverLongitude!!,
-      destLat = ride.passengerLatitude,
-      destLng = ride.passengerLongitude,
+      originLat = orgLat,
+      originLng = orgLng,
+      destLat = dstLat,
+      destLng = dstLng,
     )
     return when (directions) {
       is ServiceResult.Failure -> {
@@ -282,6 +308,28 @@ class DriverViewModel @Inject constructor(
     if (cancelRideJob.isRunning()) return
     cancelRideJob = viewModelScope.launch {
       rideRepository.cancelRide()
+    }
+  }
+
+  fun advanceRide() {
+    if (advanceRideJob.isRunning()) return
+    advanceRideJob = viewModelScope.launch {
+      val oldRide = _ride.first()
+      if (oldRide is ServiceResult.Value && oldRide.value != null) {
+        val advanceResult = rideRepository.advanceRide(rideId = oldRide.value.rideId, newState = oldRide.value.nextState())
+        when (advanceResult) {
+          is ServiceResult.Failure -> toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
+          is ServiceResult.Value -> Unit
+        }
+      }
+    }
+  }
+
+  private fun Ride.nextState(): String {
+    return when (status) {
+      RideStatus.SEARCHING_FOR_DRIVER.value -> RideStatus.PASSENGER_PICK_UP.value
+      RideStatus.PASSENGER_PICK_UP.value -> RideStatus.EN_ROUTE.value
+      else -> RideStatus.ARRIVED.value
     }
   }
 }

@@ -52,9 +52,12 @@
   <string name="passengers_requests">Passengers requests</string>
   <string name="no_passengers">There are no passengers available currently.</string>
   <string name="passenger_location">Passenger Location</string>
+  <string name="destination_location">Destination Location</string>
   <string name="unable_to_retrieve_address">Unable to retrieve address</string>
   <string name="passenger_is">Passenger is</string>
+  <string name="destination_is">Destination is</string>
   <string name="away">away</string>
   <string name="pickup_passenger">Pickup Passenger</string>
+  <string name="arrive_to_destination">Arrive To Destination</string>
   <string name="hold_icon_down">(Hold Icon Down)</string>
 </resources>

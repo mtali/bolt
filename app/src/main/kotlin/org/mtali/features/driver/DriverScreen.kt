@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
@@ -96,6 +97,8 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermission
     onRefreshPassengers = viewModel::onRefreshPassengers,
     onRideSelected = viewModel::onRideSelected,
     onCancelRide = viewModel::onCancelRide,
+    onPickupPassenger = viewModel::advanceRide,
+    onArriveToDestination = viewModel::advanceRide,
   )
 }
 
@@ -111,6 +114,8 @@ private fun DriverScreen(
   onRefreshPassengers: () -> Unit,
   onRideSelected: (Ride) -> Unit,
   onCancelRide: () -> Unit,
+  onPickupPassenger: () -> Unit,
+  onArriveToDestination: () -> Unit,
 ) {
   Scaffold(
     topBar = {
@@ -154,7 +159,7 @@ private fun DriverScreen(
           }
 
           is DriverUiState.EnRoute -> {
-            EnRouteCard()
+            EnRouteCard(uiState = uiState, onArriveToDestination = onArriveToDestination)
           }
 
           is DriverUiState.Error -> {
@@ -166,7 +171,11 @@ private fun DriverScreen(
           }
 
           is DriverUiState.PassengerPickUp -> {
-            PassengerPickUpCard(uiState, onCancelRide = onCancelRide)
+            PassengerPickUpCard(
+              uiState = uiState,
+              onCancelRide = onCancelRide,
+              onPickupPassenger = onPickupPassenger,
+            )
           }
 
           is DriverUiState.SearchingForPassengers -> {
@@ -188,8 +197,76 @@ private fun ArriveCard() {
 }
 
 @Composable
-private fun EnRouteCard() {
-  Text(text = "EnRoute")
+private fun EnRouteCard(
+  uiState: DriverUiState.EnRoute,
+  onArriveToDestination: () -> Unit,
+) {
+  val route = uiState.destinationRoute
+  val leg = route?.legs?.first()
+
+  Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
+      Text(text = stringResource(id = R.string.destination_location), fontSize = 18.sp, fontWeight = FontWeight.Medium)
+      if (leg == null) {
+        Text(text = stringResource(id = R.string.unable_to_retrieve_address))
+      } else {
+        Text(text = leg.endAddress)
+      }
+    }
+
+    HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(
+        imageVector = Icons.Outlined.AccountCircle,
+        contentDescription = null,
+        modifier = Modifier
+          .size(40.dp)
+          .padding(end = 8.dp),
+      )
+      Column {
+        Text(text = uiState.passengerName)
+        Text(
+          text = buildString {
+            append(stringResource(id = R.string.destination_is))
+            append(" ")
+            append(leg?.distance?.humanReadable ?: "? km")
+            append(" ")
+            append(stringResource(id = R.string.away))
+          },
+        )
+      }
+    }
+
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onArriveToDestination() }
+        .padding(vertical = 10.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
+    ) {
+      Icon(
+        imageVector = Icons.Outlined.Download,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.size(55.dp),
+      )
+      Text(
+        text = stringResource(id = R.string.arrive_to_destination),
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+      )
+      Text(
+        text = stringResource(id = R.string.hold_icon_down),
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+      )
+    }
+  }
 }
 
 @Composable
@@ -207,7 +284,7 @@ private fun MapPassengerPickup(
   uiState: DriverUiState.PassengerPickUp,
   cameraPosition: CameraPositionState,
 ) {
-  val route = uiState.directionsRoute
+  val route = uiState.passengerRoute
   if (route != null) {
     Polyline(
       points = PolyUtil.decode(route.overviewPolyline.encodedPath),
@@ -240,8 +317,12 @@ private fun MapPassengerPickup(
 }
 
 @Composable
-private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp, onCancelRide: () -> Unit) {
-  val route = uiState.directionsRoute
+private fun PassengerPickUpCard(
+  uiState: DriverUiState.PassengerPickUp,
+  onCancelRide: () -> Unit,
+  onPickupPassenger: () -> Unit,
+) {
+  val route = uiState.passengerRoute
   val leg = route?.legs?.first()
 
   Column {
@@ -294,6 +375,7 @@ private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp, onCancel
     Column(
       modifier = Modifier
         .fillMaxWidth()
+        .clickable { onPickupPassenger() }
         .padding(vertical = 10.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Center,
