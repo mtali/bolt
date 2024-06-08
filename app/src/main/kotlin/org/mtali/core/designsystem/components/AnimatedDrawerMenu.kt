@@ -36,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DrawerMenu(modifier: Modifier = Modifier, visible: Boolean, onClick: () -> Unit) {
+fun AnimatedDrawerMenu(modifier: Modifier = Modifier, visible: Boolean, onClick: () -> Unit) {
   AnimatedVisibility(
     visible = visible,
     enter = fadeIn(),

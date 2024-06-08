@@ -15,25 +15,22 @@
  */
 package org.mtali.features.passenger
 
-import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -42,31 +39,24 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -77,7 +67,7 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
-import org.mtali.core.designsystem.components.Dashboard
+import org.mtali.core.designsystem.components.AnimatedDrawerMenu
 import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
@@ -115,9 +105,7 @@ fun PassengerRoute(
   )
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun PassengerScreen(
   onMapLoaded: () -> Unit,
   locationPermissionGranted: Boolean,
@@ -130,69 +118,132 @@ private fun PassengerScreen(
   onCancelRide: () -> Unit,
 ) {
   Scaffold {
-    val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { false })
-    var sheetFillHeight by remember { mutableStateOf(false) }
+    Column(
+      modifier = Modifier
+        .padding(it)
+        .fillMaxSize(),
+    ) {
+      val cameraPosition = rememberCameraPositionState()
+      var expandSearch by remember { mutableStateOf(false) }
 
-    Dashboard(
-      modifier = Modifier.padding(it),
-      sheetState = sheetState,
-      onClickDrawerMenu = onClickDrawerMenu,
-      sheetFillHeight = sheetFillHeight,
-      forceShowDragHandle = uiState !is PassengerUiState.RideInactive,
-      showDrawerMenu = if (uiState is PassengerUiState.RideInactive) !sheetFillHeight else true,
-      sheetContent = {
-        when (uiState) {
-          is PassengerUiState.RideInactive -> {
-            Column(modifier = if (sheetFillHeight) Modifier.fillMaxSize() else Modifier) {
-              LocationSearch(
-                progress = sheetState.progress(),
-                onClickSearch = { sheetFillHeight = true },
-                onClickClose = { sheetFillHeight = false },
-                sheetExpanded = sheetFillHeight,
-                destinationQuery = destinationQuery,
-                onDestinationQueryChange = onDestinationQueryChange,
-                autoCompletePlaces = autoCompletePlaces,
-                onClickPlaceAutoComplete = onClickPlaceAutoComplete,
-              )
+      Box(modifier = Modifier) {
+        Column(modifier = Modifier.fillMaxSize()) {
+          GoogleMap(
+            modifier = Modifier.weight(1f),
+            onMapLoaded = onMapLoaded,
+            properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+            cameraPositionState = cameraPosition,
+          ) {
+          }
+
+          Column(
+            modifier = Modifier
+              .padding(16.dp)
+              .heightIn(min = 100.dp)
+              .animateContentSize(),
+          ) {
+            when (uiState) {
+              PassengerUiState.RideInactive -> {
+                SearchDestinationCard(
+                  destinationQuery = destinationQuery,
+                  onDestinationQueryChange = onDestinationQueryChange,
+                  autoCompletePlaces = autoCompletePlaces,
+                  onClickPlaceAutoComplete = onClickPlaceAutoComplete,
+                  expandSearch = expandSearch,
+                  onExpandSearchChange = { expandSearch = it },
+                )
+              }
+
+              is PassengerUiState.SearchingForDriver -> {
+                SearchNearbyDriver()
+              }
+
+              else -> Unit
             }
           }
+        }
+        AnimatedDrawerMenu(
+          modifier = Modifier.padding(16.dp),
+          visible = !expandSearch,
+          onClick = onClickDrawerMenu,
+        )
+      }
+    }
+  }
+}
 
-          is PassengerUiState.SearchingForDriver -> {
-            SearchingForDriver(
-              onCancelRide = {
-                sheetFillHeight = false
-                onCancelRide()
-              },
+@Composable
+private fun SearchDestinationCard(
+  expandSearch: Boolean,
+  destinationQuery: String,
+  onDestinationQueryChange: (String) -> Unit,
+  autoCompletePlaces: List<PlacesAutoComplete>,
+  onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
+  onExpandSearchChange: (Boolean) -> Unit,
+) {
+  if (!expandSearch) {
+    SearchPlaceholder(onClickSearch = { onExpandSearchChange(true) })
+  } else {
+    LazyColumn(
+      modifier = Modifier.fillMaxSize(),
+    ) {
+      item {
+        Height(height = 4.dp)
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          IconButton(onClick = { onExpandSearchChange(false) }) {
+            Icon(
+              imageVector = Icons.Outlined.Close,
+              contentDescription = null,
+              modifier = Modifier.size(27.dp),
             )
           }
-
-          is PassengerUiState.PassengerPickUp -> {
-          }
-
-          is PassengerUiState.EnRoute -> {
-          }
-
-          is PassengerUiState.Arrive -> {
-          }
-
-          is PassengerUiState.Error -> {
-          }
-
-          is PassengerUiState.Loading -> {
-          }
+          Text(
+            text = stringResource(id = R.string.your_route),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+          )
         }
-      },
-      content = {
-        val cameraPositionState = rememberCameraPositionState()
-        GoogleMap(
-          modifier = Modifier.fillMaxSize(),
-          cameraPositionState = cameraPositionState,
-          onMapLoaded = onMapLoaded,
-          properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+
+        Height(height = 10.dp)
+
+        OutlinedTextField(
+          value = stringResource(id = R.string.current),
+          onValueChange = {},
+          modifier = Modifier.fillMaxWidth(),
+          leadingIcon = { CurrentDot() },
+          placeholder = { Text(text = stringResource(id = R.string.search_pickup_loc)) },
+          enabled = false,
         )
-      },
-    )
+
+        Height(height = 12.dp)
+
+        OutlinedTextField(
+          value = destinationQuery,
+          onValueChange = onDestinationQueryChange,
+          modifier = Modifier.fillMaxWidth(),
+          leadingIcon = { Icon(imageVector = Icons.Sharp.Search, contentDescription = null) },
+          placeholder = { Text(text = stringResource(id = R.string.destination)) },
+        )
+
+        BackHandler {
+          onExpandSearchChange(false)
+        }
+      }
+
+      height(10.dp)
+
+      items(autoCompletePlaces) {
+        PlaceAutoCompleteListItem(address = it.address, onClick = { onClickPlaceAutoComplete(it) })
+      }
+    }
   }
+}
+
+@Composable
+private fun SearchNearbyDriver() {
+  Text(text = "Search near")
 }
 
 @Composable
@@ -219,80 +270,6 @@ private fun SearchingForDriver(onCancelRide: () -> Unit) {
       horizontalArrangement = Arrangement.Center,
     ) {
       CircularProgressIndicator(modifier = Modifier.size(60.dp))
-    }
-  }
-}
-
-@Composable
-private fun LocationSearch(
-  modifier: Modifier = Modifier,
-  progress: Float,
-  sheetExpanded: Boolean,
-  onClickSearch: () -> Unit,
-  onClickClose: () -> Unit,
-  destinationQuery: String,
-  onDestinationQueryChange: (String) -> Unit,
-  autoCompletePlaces: List<PlacesAutoComplete>,
-  onClickPlaceAutoComplete: (PlacesAutoComplete) -> Unit,
-) {
-  LazyColumn(
-    modifier = modifier
-      .animateContentSize()
-      .padding(horizontal = 16.dp),
-  ) {
-    if (!sheetExpanded) {
-      searchDummy(progress = progress, onClickSearch = onClickSearch)
-    } else {
-      item {
-        Column(
-          modifier = Modifier.alpha(if (progress < 0.7f) 0f else 1f),
-        ) {
-          Height(height = 4.dp)
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            IconButton(onClick = onClickClose) {
-              Icon(
-                imageVector = Icons.Outlined.Close,
-                contentDescription = null,
-                modifier = Modifier.size(27.dp),
-              )
-            }
-            Text(
-              text = stringResource(id = R.string.your_route),
-              fontSize = 18.sp,
-              fontWeight = FontWeight.SemiBold,
-            )
-          }
-
-          Height(height = 10.dp)
-
-          OutlinedTextField(
-            value = stringResource(id = R.string.current),
-            onValueChange = {},
-            modifier = Modifier.fillMaxWidth(),
-            leadingIcon = { CurrentDot() },
-            placeholder = { Text(text = stringResource(id = R.string.search_pickup_loc)) },
-            enabled = false,
-          )
-
-          Height(height = 12.dp)
-
-          OutlinedTextField(
-            value = destinationQuery,
-            onValueChange = onDestinationQueryChange,
-            modifier = Modifier.fillMaxWidth(),
-            leadingIcon = { Icon(imageVector = Icons.Sharp.Search, contentDescription = null) },
-            placeholder = { Text(text = stringResource(id = R.string.destination)) },
-          )
-        }
-        BackHandler { onClickClose() }
-      }
-
-      height(10.dp)
-      items(autoCompletePlaces) {
-        PlaceAutoCompleteListItem(address = it.address, onClick = { onClickPlaceAutoComplete(it) })
-      }
     }
   }
 }
@@ -337,37 +314,24 @@ private fun PlaceAutoCompleteListItem(address: String, onClick: () -> Unit) {
   )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SheetState.progress(): Float {
-  val screenHeightPx = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
-  val offsetBottomSheet by remember(this) {
-    derivedStateOf {
-      runCatching { this.requireOffset() }.getOrDefault(0F)
-    }
-  }
-  return (1 - (offsetBottomSheet / screenHeightPx)).coerceIn(0f, 1f)
-}
+private fun SearchPlaceholder(onClickSearch: () -> Unit) {
+  Column {
+    Text(text = stringResource(id = R.string.slogan), fontSize = 16.sp)
 
-private fun LazyListScope.searchDummy(progress: Float, onClickSearch: () -> Unit) = item {
-  AnimatedVisibility(
-    visible = progress < 0.8f,
-    enter = fadeIn(),
-    exit = fadeOut(),
-  ) {
+    Height(height = 7.dp)
     Box(
       modifier = Modifier
         .fillMaxWidth()
-        .clip(RoundedCornerShape(5.dp))
-        .alpha(1 - progress)
+        .clip(RoundedCornerShape(8.dp))
         .height(62.dp)
         .clickable { onClickSearch() }
-        .background(MaterialTheme.colorScheme.surface),
+        .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .fillParentMaxHeight(),
+          .fillMaxHeight(),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Width(width = 16.dp)
