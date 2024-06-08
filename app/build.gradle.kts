@@ -74,8 +74,6 @@ dependencies {
   // Lifecycle
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.runtime.compose)
-  implementation(libs.play.location)
-  implementation(libs.places)
 
   // Compose + UI + Navigation
   val composeBom = platform(libs.androidx.compose.bom)
@@ -124,6 +122,9 @@ dependencies {
 
   // Maps
   implementation(libs.maps.compose)
+  implementation(libs.play.location)
+  implementation(libs.places)
+  implementation(libs.maps.services)
 
   // Flexible BottomSheet
   implementation(libs.flexible.bottomsheet)
