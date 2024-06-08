@@ -32,10 +32,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -99,6 +101,7 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermission
     onCancelRide = viewModel::onCancelRide,
     onPickupPassenger = viewModel::advanceRide,
     onArriveToDestination = viewModel::advanceRide,
+    onRideCompleted = viewModel::onCancelRide,
   )
 }
 
@@ -116,6 +119,7 @@ private fun DriverScreen(
   onCancelRide: () -> Unit,
   onPickupPassenger: () -> Unit,
   onArriveToDestination: () -> Unit,
+  onRideCompleted: () -> Unit,
 ) {
   Scaffold(
     topBar = {
@@ -143,6 +147,10 @@ private fun DriverScreen(
             MapPassengerPickup(uiState, cameraPosition)
           }
 
+          is DriverUiState.EnRoute -> {
+            MapEnRoute(uiState, cameraPosition)
+          }
+
           else -> Unit
         }
       }
@@ -155,7 +163,7 @@ private fun DriverScreen(
       ) {
         when (uiState) {
           is DriverUiState.Arrive -> {
-            ArriveCard()
+            ArriveCard(onRideCompleted = onRideCompleted)
           }
 
           is DriverUiState.EnRoute -> {
@@ -192,8 +200,69 @@ private fun DriverScreen(
 }
 
 @Composable
-private fun ArriveCard() {
-  Text(text = "Arrive")
+private fun MapEnRoute(
+  uiState: DriverUiState.EnRoute,
+  cameraPosition: CameraPositionState,
+) {
+  val route = uiState.destinationRoute
+  if (route != null) {
+    Polyline(
+      points = PolyUtil.decode(route.overviewPolyline.encodedPath),
+      clickable = false,
+      color = MaterialTheme.colorScheme.primary,
+    )
+  }
+
+  MarkerComposable(
+    state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
+    title = "Driver",
+  ) {
+    Image(
+      painter = painterResource(id = R.drawable.ic_car_marker),
+      modifier = Modifier.size(30.dp),
+      contentDescription = null,
+    )
+  }
+
+  Marker(
+    state = MarkerState(position = LatLng(uiState.destinationLat, uiState.destinationLng)),
+    title = uiState.destinationAddress,
+  )
+
+  LaunchedEffect(Unit) {
+    cameraPosition.animate(
+      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 14f),
+    )
+  }
+}
+
+@Composable
+private fun ArriveCard(onRideCompleted: () -> Unit) {
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .clickable { onRideCompleted() }
+      .padding(vertical = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+    Icon(
+      imageVector = Icons.Outlined.DoneAll,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.size(55.dp),
+    )
+    Text(
+      text = stringResource(id = R.string.ride_completed),
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Medium,
+    )
+    Text(
+      text = stringResource(id = R.string.hold_icon_down),
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Medium,
+    )
+  }
 }
 
 @Composable
@@ -271,12 +340,20 @@ private fun EnRouteCard(
 
 @Composable
 private fun ErrorCard() {
-  Text(text = "Error")
+  Text(text = "Ops ... error")
 }
 
 @Composable
 private fun LoadingCard() {
-  Text(text = "Loading")
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(vertical = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+    CircularProgressIndicator(modifier = Modifier.size(70.dp))
+  }
 }
 
 @Composable

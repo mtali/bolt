@@ -308,6 +308,7 @@ class DriverViewModel @Inject constructor(
     if (cancelRideJob.isRunning()) return
     cancelRideJob = viewModelScope.launch {
       rideRepository.cancelRide()
+      getPassengerList()
     }
   }
 
