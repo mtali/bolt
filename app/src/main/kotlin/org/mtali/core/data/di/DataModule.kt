@@ -15,17 +15,17 @@
  */
 package org.mtali.core.data.di
 
-import android.content.Context
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.maps.GeoApiContext
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.getstream.chat.android.client.ChatClient
+import org.mtali.BuildConfig
 import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.GoogleRepository
@@ -64,6 +64,14 @@ abstract class DataModule {
     fun providesFirebaseAuth(): FirebaseAuth = Firebase.auth
 
     @Provides
-    fun providesStreamClient(@ApplicationContext context: Context): ChatClient = ChatClient.instance()
+    fun providesStreamClient(): ChatClient = ChatClient.instance()
+
+    @Provides
+    @Singleton
+    fun providesGeoContext(): GeoApiContext {
+      return GeoApiContext.Builder()
+        .apiKey(BuildConfig.MAPS_API_KEY)
+        .build()
+    }
   }
 }

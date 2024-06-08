@@ -17,9 +17,18 @@ package org.mtali.core.data.repositories
 
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.maps.model.DirectionsRoute
 import org.mtali.core.models.ServiceResult
 
 interface GoogleRepository {
   suspend fun getPlacesAutocomplete(query: String): ServiceResult<List<AutocompletePrediction>>
   suspend fun getPlaceLatLng(placeId: String): ServiceResult<LatLng?>
+
+  // Trial
+  suspend fun getDirectionsRoute(
+    originLat: Double,
+    originLng: Double,
+    destLat: Double,
+    destLng: Double,
+  ): ServiceResult<DirectionsRoute>
 }

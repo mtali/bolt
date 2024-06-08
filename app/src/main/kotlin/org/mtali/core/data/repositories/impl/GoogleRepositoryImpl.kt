@@ -24,6 +24,11 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.google.maps.DirectionsApi
+import com.google.maps.GeoApiContext
+import com.google.maps.model.DirectionsRoute
+import com.google.maps.model.TravelMode
+import com.google.maps.model.Unit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.tasks.await
@@ -38,6 +43,7 @@ import javax.inject.Inject
 class GoogleRepositoryImpl @Inject constructor(
   @ApplicationContext context: Context,
   @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+  private val geoContext: GeoApiContext,
 ) : GoogleRepository {
 
   private var token: AutocompleteSessionToken? = null
@@ -68,6 +74,30 @@ class GoogleRepositoryImpl @Inject constructor(
       ServiceResult.Value(client.fetchPlace(request).await().place.latLng)
     } catch (e: Exception) {
       ServiceResult.Failure(e)
+    }
+  }
+
+  override suspend fun getDirectionsRoute(
+    originLat: Double,
+    originLng: Double,
+    destLat: Double,
+    destLng: Double,
+  ): ServiceResult<DirectionsRoute> = withContext(ioDispatcher) {
+    val result = DirectionsApi.newRequest(geoContext)
+      .mode(TravelMode.DRIVING)
+      .units(Unit.METRIC)
+      .region("tz")
+      .origin(com.google.maps.model.LatLng(originLat, originLng))
+      .destination(com.google.maps.model.LatLng(destLat, destLng))
+      .await()
+
+    if (result.routes?.first() != null &&
+      result.routes.isNotEmpty() &&
+      result.routes.first().legs.isNotEmpty()
+    ) {
+      ServiceResult.Value(result.routes.first())
+    } else {
+      ServiceResult.Failure(Exception("Unable to retrieve address"))
     }
   }
 }
