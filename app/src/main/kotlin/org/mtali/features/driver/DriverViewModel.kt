@@ -100,7 +100,7 @@ class DriverViewModel @Inject constructor(
             destinationAddress = ride.destinationAddress,
             passengerName = ride.passengerName,
             totalMessages = ride.totalMessages,
-            directionsRoute = directionsRoute
+            directionsRoute = directionsRoute,
           )
         }
 
@@ -195,8 +195,8 @@ class DriverViewModel @Inject constructor(
     val directions = googleRepository.getDirectionsRoute(
       originLat = ride.driverLatitude!!,
       originLng = ride.driverLongitude!!,
-      destLat = ride.destinationLatitude,
-      destLng = ride.destinationLongitude,
+      destLat = ride.passengerLatitude,
+      destLng = ride.passengerLongitude,
     )
     return when (directions) {
       is ServiceResult.Failure -> {

@@ -30,7 +30,7 @@ sealed interface DriverUiState {
     val destinationAddress: String,
     val passengerName: String,
     val totalMessages: Int,
-    val directionsRoute: DirectionsRoute?
+    val directionsRoute: DirectionsRoute?,
   ) : DriverUiState
 
   data class EnRoute(

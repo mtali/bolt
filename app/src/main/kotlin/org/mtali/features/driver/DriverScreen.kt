@@ -17,6 +17,7 @@ package org.mtali.features.driver
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,22 +43,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.PolyUtil
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.models.Ride
 import org.mtali.core.utils.handleToast
@@ -100,12 +109,6 @@ private fun DriverScreen(
   onRefreshPassengers: () -> Unit,
   onRideSelected: (Ride) -> Unit,
 ) {
-  val sheetState = rememberStandardBottomSheetState(skipHiddenState = true, confirmValueChange = { true })
-
-  LaunchedEffect(uiState) {
-    sheetState.expand()
-  }
-
   Scaffold(
     topBar = {
       TopAppBar(
@@ -119,11 +122,22 @@ private fun DriverScreen(
     },
   ) {
     Column(modifier = Modifier.fillMaxSize()) {
+      val cameraPosition = rememberCameraPositionState()
+
       GoogleMap(
         modifier = Modifier.weight(1f),
         onMapLoaded = onMapLoaded,
         properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
-      )
+        cameraPositionState = cameraPosition,
+      ) {
+        when (uiState) {
+          is DriverUiState.PassengerPickUp -> {
+            MapPassengerPickup(uiState, cameraPosition)
+          }
+
+          else -> Unit
+        }
+      }
 
       Column(
         modifier = Modifier
@@ -186,8 +200,44 @@ private fun LoadingCard() {
 }
 
 @Composable
-private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp) {
+private fun MapPassengerPickup(
+  uiState: DriverUiState.PassengerPickUp,
+  cameraPosition: CameraPositionState,
+) {
+  val route = uiState.directionsRoute
+  if (route != null) {
+    Polyline(
+      points = PolyUtil.decode(route.overviewPolyline.encodedPath),
+      clickable = false,
+      color = MaterialTheme.colorScheme.primary,
+    )
+  }
 
+  MarkerComposable(
+    state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
+    title = "Driver",
+  ) {
+    Image(
+      painter = painterResource(id = R.drawable.ic_car_marker),
+      modifier = Modifier.size(30.dp),
+      contentDescription = null,
+    )
+  }
+
+  Marker(
+    state = MarkerState(position = LatLng(uiState.passengerLat, uiState.passengerLng)),
+    title = "Passenger",
+  )
+
+  LaunchedEffect(Unit) {
+    cameraPosition.animate(
+      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 14f),
+    )
+  }
+}
+
+@Composable
+private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp) {
   val route = uiState.directionsRoute
   val leg = route?.legs?.first()
 
@@ -204,24 +254,26 @@ private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp) {
 
     Row(
       modifier = Modifier.fillMaxWidth(),
-      verticalAlignment = Alignment.CenterVertically
+      verticalAlignment = Alignment.CenterVertically,
     ) {
       Icon(
         imageVector = Icons.Outlined.AccountCircle,
         contentDescription = null,
         modifier = Modifier
           .size(40.dp)
-          .padding(end = 8.dp)
+          .padding(end = 8.dp),
       )
       Column {
         Text(text = uiState.passengerName)
-        Text(text = buildString {
-          append(stringResource(id = R.string.passenger_is))
-          append(" ")
-          append(leg?.distance?.humanReadable ?: "? km")
-          append(" ")
-          append(stringResource(id = R.string.away))
-        })
+        Text(
+          text = buildString {
+            append(stringResource(id = R.string.passenger_is))
+            append(" ")
+            append(leg?.distance?.humanReadable ?: "? km")
+            append(" ")
+            append(stringResource(id = R.string.away))
+          },
+        )
       }
     }
 
@@ -230,23 +282,23 @@ private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp) {
         .fillMaxWidth()
         .padding(vertical = 10.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Center
+      verticalArrangement = Arrangement.Center,
     ) {
       Icon(
         imageVector = Icons.Outlined.PersonAdd,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.size(55.dp)
+        modifier = Modifier.size(55.dp),
       )
       Text(
         text = stringResource(id = R.string.pickup_passenger),
         fontSize = 18.sp,
-        fontWeight = FontWeight.Medium
+        fontWeight = FontWeight.Medium,
       )
       Text(
         text = stringResource(id = R.string.hold_icon_down),
         fontSize = 18.sp,
-        fontWeight = FontWeight.Medium
+        fontWeight = FontWeight.Medium,
       )
     }
   }

@@ -26,6 +26,7 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
+import com.google.maps.errors.ZeroResultsException
 import com.google.maps.model.DirectionsRoute
 import com.google.maps.model.TravelMode
 import com.google.maps.model.Unit
@@ -83,21 +84,25 @@ class GoogleRepositoryImpl @Inject constructor(
     destLat: Double,
     destLng: Double,
   ): ServiceResult<DirectionsRoute> = withContext(ioDispatcher) {
-    val result = DirectionsApi.newRequest(geoContext)
-      .mode(TravelMode.DRIVING)
-      .units(Unit.METRIC)
-      .region("tz")
-      .origin(com.google.maps.model.LatLng(originLat, originLng))
-      .destination(com.google.maps.model.LatLng(destLat, destLng))
-      .await()
+    try {
+      val result = DirectionsApi.newRequest(geoContext)
+        .mode(TravelMode.DRIVING)
+        .units(Unit.METRIC)
+//      .region("tz")
+        .origin(com.google.maps.model.LatLng(originLat, originLng))
+        .destination(com.google.maps.model.LatLng(destLat, destLng))
+        .await()
 
-    if (result.routes?.first() != null &&
-      result.routes.isNotEmpty() &&
-      result.routes.first().legs.isNotEmpty()
-    ) {
-      ServiceResult.Value(result.routes.first())
-    } else {
-      ServiceResult.Failure(Exception("Unable to retrieve address"))
+      if (result.routes?.first() != null &&
+        result.routes.isNotEmpty() &&
+        result.routes.first().legs.isNotEmpty()
+      ) {
+        ServiceResult.Value(result.routes.first())
+      } else {
+        ServiceResult.Failure(Exception("Unable to retrieve address"))
+      }
+    } catch (e: ZeroResultsException) {
+      ServiceResult.Failure(Exception(e.message))
     }
   }
 }
