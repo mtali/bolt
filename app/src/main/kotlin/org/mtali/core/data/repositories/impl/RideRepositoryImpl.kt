@@ -327,6 +327,7 @@ class RideRepositoryImpl @Inject constructor(
       Timber.tag(tag).d("observeChannelEvents() :-> received event of type = ${event.type}")
       when (event) {
         is ChannelDeletedEvent -> {
+          _openRides.update { ServiceResult.Value(emptyList()) }
           _rideUpdates.update { ServiceResult.Value(null) }
         }
 

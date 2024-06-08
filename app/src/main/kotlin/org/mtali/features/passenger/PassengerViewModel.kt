@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
+import com.google.maps.model.DirectionsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,8 +46,6 @@ import org.mtali.core.models.ToastMessage
 import org.mtali.core.utils.combineTuple
 import timber.log.Timber
 import javax.inject.Inject
-
-private const val tag = "wakanda:PassengerViewModel"
 
 @HiltViewModel
 class PassengerViewModel @Inject constructor(
@@ -124,6 +123,7 @@ class PassengerViewModel @Inject constructor(
             destinationAddress = ride.destinationAddress,
             driverName = ride.driverName ?: "Error",
             totalMessages = ride.totalMessages,
+            driverRoute = ride.routeToDriver(),
           )
         }
 
@@ -141,6 +141,7 @@ class PassengerViewModel @Inject constructor(
             destinationAddress = ride.destinationAddress,
             driverName = ride.driverName ?: "Error",
             totalMessages = ride.totalMessages,
+            destinationRoute = ride.routeToDestination(),
           )
         }
 
@@ -173,12 +174,10 @@ class PassengerViewModel @Inject constructor(
     )
 
   init {
-    Timber.tag(tag).d("init view model")
     getPassenger()
   }
 
   fun onMapLoaded() {
-    Timber.tag(tag).d("map loaded")
     _mapIsReady.update { true }
   }
 
@@ -199,21 +198,16 @@ class PassengerViewModel @Inject constructor(
   }
 
   private fun getPassenger() = viewModelScope.launch {
-    Timber.tag(tag).d("start.. get passenger")
     when (val getUserResult = getUserUseCase()) {
       is ServiceResult.Failure -> {
-        Timber.tag(tag).d("get passenger: failed")
         toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
         logoutUser()
       }
 
       is ServiceResult.Value -> {
-        Timber.tag(tag).d("get passenger: result -> ${getUserResult.value}")
         if (getUserResult.value == null) {
-          Timber.tag(tag).d("get passenger: failed")
           logoutUser()
         } else {
-          Timber.tag(tag).d("get passenger: success")
           getActiveRideIfItExists(getUserResult.value)
         }
       }
@@ -225,18 +219,14 @@ class PassengerViewModel @Inject constructor(
    * Be sure to store value of user[BoltUser]
    */
   private suspend fun getActiveRideIfItExists(user: BoltUser) {
-    Timber.tag(tag).d("start.. get active ride")
     when (val ride = rideRepository.getRideIfInProgress()) {
       is ServiceResult.Failure -> {
-        Timber.tag(tag).d("get active ride: failed")
         toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
         logoutUser()
       }
 
       is ServiceResult.Value -> {
-        Timber.tag(tag).d("get active ride: result -> ${ride.value}")
         if (ride.value == null) {
-          Timber.tag(tag).d("get active ride: success .. set passenger}")
           _passenger.update { user }
         } else {
           observeRide(ride.value, user)
@@ -246,27 +236,21 @@ class PassengerViewModel @Inject constructor(
   }
 
   fun onDestinationQueryChange(query: String) {
-    Timber.tag(tag).d("start.. destination query: $query")
     _destinationQuery.update { query }
     requestPlacesAutocomplete()
   }
 
   fun onClickPlaceAutoComplete(place: PlacesAutoComplete) {
-    Timber.tag(tag).d("start.. place clicked")
     viewModelScope.launch {
-      Timber.tag(tag).d("start..: get place lat lng")
       when (val destLatLng = googleRepository.getPlaceLatLng(placeId = place.prediction.placeId)) {
         is ServiceResult.Failure -> {
-          Timber.tag(tag).d("get place lat lng: failed")
           toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
         }
 
         is ServiceResult.Value -> {
           if (destLatLng.value == null) {
-            Timber.tag(tag).d("get place lat lng: failed")
             toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES)
           } else {
-            Timber.tag(tag).d("get place lat lng: success")
             devicePrefs.first().deviceLocation?.let {
               attemptCreateRide(destLatLng.value, place.address, it)
             }
@@ -289,12 +273,10 @@ class PassengerViewModel @Inject constructor(
 
   private suspend fun observeRide(cid: String, user: BoltUser) {
     rideRepository.observeRideById(rideId = cid)
-    Timber.tag(tag).d("setting passenger -> ${user.userId}")
     _passenger.update { user }
   }
 
   private suspend fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
-    Timber.tag(tag).d("start.. attempt create ride")
     val passenger = checkNotNull(_passenger.value)
     val createRide = CreateRide(
       passengerId = passenger.userId,
@@ -307,12 +289,10 @@ class PassengerViewModel @Inject constructor(
     )
     when (val result = rideRepository.createRide(createRide)) {
       is ServiceResult.Failure -> {
-        Timber.tag(tag).d("attempt create ride: failed")
         toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
       }
 
       is ServiceResult.Value -> {
-        Timber.tag(tag).d("attempt create ride: success")
         observeRide(result.value, _passenger.value!!)
         clearSearch()
       }
@@ -320,8 +300,47 @@ class PassengerViewModel @Inject constructor(
   }
 
   private fun logoutUser() {
-    Timber.tag(tag).d("forced logout")
     viewModelScope.launch { logoutUseCase() }
+  }
+
+  private suspend fun Ride.routeToDriver(): DirectionsRoute? {
+    return getDirections(
+      orgLng = passengerLongitude,
+      orgLat = passengerLatitude,
+      dstLng = driverLongitude!!,
+      dstLat = driverLatitude!!,
+    )
+  }
+
+  private suspend fun Ride.routeToDestination(): DirectionsRoute? {
+    return getDirections(
+      orgLng = passengerLongitude,
+      orgLat = passengerLatitude,
+      dstLng = destinationLongitude,
+      dstLat = destinationLatitude,
+    )
+  }
+
+  private suspend fun getDirections(
+    orgLat: Double,
+    orgLng: Double,
+    dstLat: Double,
+    dstLng: Double,
+  ): DirectionsRoute? {
+    val directions = googleRepository.getDirectionsRoute(
+      originLat = orgLat,
+      originLng = orgLng,
+      destLat = dstLat,
+      destLng = dstLng,
+    )
+    return when (directions) {
+      is ServiceResult.Failure -> {
+        toastHandler?.invoke(ToastMessage.SERVICE_ERROR)
+        null
+      }
+
+      is ServiceResult.Value -> directions.value
+    }
   }
 }
 

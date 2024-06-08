@@ -56,6 +56,7 @@
   <string name="unable_to_retrieve_address">Unable to retrieve address</string>
   <string name="passenger_is">Passenger is</string>
   <string name="destination_is">Destination is</string>
+  <string name="driver_is">Driver is</string>
   <string name="away">away</string>
   <string name="pickup_passenger">Pickup Passenger</string>
   <string name="arrive_to_destination">Arrive To Destination</string>

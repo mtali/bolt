@@ -15,6 +15,8 @@
  */
 package org.mtali.features.passenger
 
+import com.google.maps.model.DirectionsRoute
+
 sealed interface PassengerUiState {
   data object RideInactive : PassengerUiState
 
@@ -34,6 +36,7 @@ sealed interface PassengerUiState {
     val destinationAddress: String,
     val driverName: String,
     val totalMessages: Int,
+    val driverRoute: DirectionsRoute?,
   ) : PassengerUiState
 
   data class EnRoute(
@@ -46,6 +49,7 @@ sealed interface PassengerUiState {
     val destinationAddress: String,
     val driverName: String,
     val totalMessages: Int,
+    val destinationRoute: DirectionsRoute?,
   ) : PassengerUiState
 
   data class Arrive(

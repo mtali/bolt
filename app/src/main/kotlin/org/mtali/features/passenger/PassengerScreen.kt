@@ -35,6 +35,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -155,10 +157,29 @@ private fun PassengerScreen(
               }
 
               is PassengerUiState.SearchingForDriver -> {
+                LaunchedEffect(Unit) { expandSearch = false }
                 SearchNearbyDriver(uiState, onCancelRide)
               }
 
-              else -> Unit
+              is PassengerUiState.PassengerPickUp -> {
+                PassengerPickUpCard(uiState, onCancelRide)
+              }
+
+              is PassengerUiState.EnRoute -> {
+                PassengerEnRoute(uiState)
+              }
+
+              is PassengerUiState.Loading -> {
+                LoadingCard()
+              }
+
+              is PassengerUiState.Arrive -> {
+                PassengerArriveCard()
+              }
+
+              is PassengerUiState.Error -> {
+                ErrorCard()
+              }
             }
           }
         }
@@ -166,6 +187,145 @@ private fun PassengerScreen(
           modifier = Modifier.padding(16.dp),
           visible = !expandSearch,
           onClick = onClickDrawerMenu,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun ErrorCard() {
+  Text(text = "Ops ... error")
+}
+
+@Composable
+private fun PassengerArriveCard() {
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(vertical = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+    Icon(
+      imageVector = Icons.Outlined.DoneAll,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.size(55.dp),
+    )
+    Text(
+      text = stringResource(id = R.string.ride_completed),
+      fontSize = 18.sp,
+      fontWeight = FontWeight.Medium,
+    )
+  }
+}
+
+@Composable
+private fun LoadingCard() {
+  Column(
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(vertical = 10.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+    CircularProgressIndicator(modifier = Modifier.size(70.dp))
+  }
+}
+
+@Composable
+private fun PassengerEnRoute(uiState: PassengerUiState.EnRoute) {
+  val route = uiState.destinationRoute
+  val leg = route?.legs?.first()
+
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row {
+      Column(modifier = Modifier.weight(1f)) {
+        Text(text = stringResource(id = R.string.destination_location), fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        if (leg == null) {
+          Text(text = stringResource(id = R.string.unable_to_retrieve_address))
+        } else {
+          Text(text = leg.endAddress)
+        }
+      }
+    }
+
+    HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(
+        imageVector = Icons.Outlined.DirectionsCar,
+        contentDescription = null,
+        modifier = Modifier
+          .size(40.dp)
+          .padding(end = 8.dp),
+      )
+      Column {
+        Text(text = uiState.driverName)
+        Text(
+          text = buildString {
+            append(stringResource(id = R.string.destination_is))
+            append(" ")
+            append(leg?.distance?.humanReadable ?: "? km")
+            append(" ")
+            append(stringResource(id = R.string.away))
+          },
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun PassengerPickUpCard(
+  uiState: PassengerUiState.PassengerPickUp,
+  onCancelRide: () -> Unit,
+) {
+  val route = uiState.driverRoute
+  val leg = route?.legs?.first()
+
+  Column(modifier = Modifier.fillMaxWidth()) {
+    Row {
+      Column(modifier = Modifier.weight(1f)) {
+        Text(text = stringResource(id = R.string.destination_location), fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        if (leg == null) {
+          Text(text = stringResource(id = R.string.unable_to_retrieve_address))
+        } else {
+          Text(text = leg.endAddress)
+        }
+      }
+      IconButton(onClick = onCancelRide) {
+        Icon(imageVector = Icons.Outlined.Close, contentDescription = "cancel")
+      }
+    }
+
+    HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(
+        imageVector = Icons.Outlined.DirectionsCar,
+        contentDescription = null,
+        modifier = Modifier
+          .size(40.dp)
+          .padding(end = 8.dp),
+      )
+      Column {
+        Text(text = uiState.driverName)
+        Text(
+          text = buildString {
+            append(stringResource(id = R.string.driver_is))
+            append(" ")
+            append(leg?.distance?.humanReadable ?: "? km")
+            append(" ")
+            append(stringResource(id = R.string.away))
+          },
         )
       }
     }

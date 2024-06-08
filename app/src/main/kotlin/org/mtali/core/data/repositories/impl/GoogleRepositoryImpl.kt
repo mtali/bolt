@@ -102,6 +102,7 @@ class GoogleRepositoryImpl @Inject constructor(
         ServiceResult.Failure(Exception("Unable to retrieve address"))
       }
     } catch (e: ZeroResultsException) {
+      Timber.e(e)
       ServiceResult.Failure(Exception(e.message))
     }
   }
