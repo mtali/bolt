@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
@@ -94,6 +95,7 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermission
     locationPermissionGranted = locationPermissionGranted,
     onRefreshPassengers = viewModel::onRefreshPassengers,
     onRideSelected = viewModel::onRideSelected,
+    onCancelRide = viewModel::onCancelRide,
   )
 }
 
@@ -108,6 +110,7 @@ private fun DriverScreen(
   locationPermissionGranted: Boolean,
   onRefreshPassengers: () -> Unit,
   onRideSelected: (Ride) -> Unit,
+  onCancelRide: () -> Unit,
 ) {
   Scaffold(
     topBar = {
@@ -163,7 +166,7 @@ private fun DriverScreen(
           }
 
           is DriverUiState.PassengerPickUp -> {
-            PassengerPickUpCard(uiState)
+            PassengerPickUpCard(uiState, onCancelRide = onCancelRide)
           }
 
           is DriverUiState.SearchingForPassengers -> {
@@ -237,19 +240,30 @@ private fun MapPassengerPickup(
 }
 
 @Composable
-private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp) {
+private fun PassengerPickUpCard(uiState: DriverUiState.PassengerPickUp, onCancelRide: () -> Unit) {
   val route = uiState.directionsRoute
   val leg = route?.legs?.first()
 
   Column {
-    Column(modifier = Modifier.fillMaxWidth()) {
-      Text(text = stringResource(id = R.string.passenger_location), fontSize = 18.sp, fontWeight = FontWeight.Medium)
-      if (leg == null) {
-        Text(text = stringResource(id = R.string.unable_to_retrieve_address))
-      } else {
-        Text(text = leg.endAddress)
+    Row(modifier = Modifier.fillMaxWidth()) {
+      Column(modifier = Modifier.weight(1f)) {
+        Text(text = stringResource(id = R.string.passenger_location), fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        if (leg == null) {
+          Text(text = stringResource(id = R.string.unable_to_retrieve_address))
+        } else {
+          Text(text = leg.endAddress)
+        }
+      }
+
+      IconButton(onClick = onCancelRide) {
+        Icon(
+          imageVector = Icons.Outlined.Close,
+          contentDescription = "cancel",
+          modifier = Modifier.padding(start = 8.dp),
+        )
       }
     }
+
     HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
 
     Row(

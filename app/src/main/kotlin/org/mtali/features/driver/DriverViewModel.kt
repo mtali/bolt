@@ -67,8 +67,8 @@ class DriverViewModel @Inject constructor(
   private val _passengersSearching = rideRepository.openRides()
 
   private var refreshPassengersJob: Job? = null
-
   private var rideSelectedJob: Job? = null
+  private var cancelRideJob: Job? = null
 
   val uiState = combineTuple(
     _ride,
@@ -275,6 +275,13 @@ class DriverViewModel @Inject constructor(
           }
         }
       }
+    }
+  }
+
+  fun onCancelRide() {
+    if (cancelRideJob.isRunning()) return
+    cancelRideJob = viewModelScope.launch {
+      rideRepository.cancelRide()
     }
   }
 }
