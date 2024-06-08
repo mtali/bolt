@@ -37,8 +37,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.sharp.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -155,7 +155,7 @@ private fun PassengerScreen(
               }
 
               is PassengerUiState.SearchingForDriver -> {
-                SearchNearbyDriver()
+                SearchNearbyDriver(uiState, onCancelRide)
               }
 
               else -> Unit
@@ -242,34 +242,46 @@ private fun SearchDestinationCard(
 }
 
 @Composable
-private fun SearchNearbyDriver() {
-  Text(text = "Search near")
-}
-
-@Composable
-private fun SearchingForDriver(onCancelRide: () -> Unit) {
-  Column(
-    Modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp),
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.Top,
-    ) {
-      Column {
-        Text(text = stringResource(id = R.string.search_driver), fontWeight = FontWeight.Bold, fontSize = 17.sp)
-        Text(text = stringResource(id = R.string.wait_for_driver), fontSize = 14.sp)
+private fun SearchNearbyDriver(
+  uiState: PassengerUiState.SearchingForDriver,
+  onCancelRide: () -> Unit,
+) {
+  Column {
+    Row(modifier = Modifier.fillMaxWidth()) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .weight(1f),
+      ) {
+        Text(text = stringResource(id = R.string.destination_location), fontSize = 18.sp, fontWeight = FontWeight.Medium)
+        Text(text = uiState.destinationAddress)
       }
-      Button(onClick = onCancelRide) { Text(text = stringResource(id = R.string.cancel)) }
+      IconButton(onClick = onCancelRide) {
+        Icon(imageVector = Icons.Outlined.Close, contentDescription = "cancel")
+      }
     }
 
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.Center,
+    HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+    Column(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 10.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center,
     ) {
-      CircularProgressIndicator(modifier = Modifier.size(60.dp))
+      CircularProgressIndicator(
+        modifier = Modifier
+          .size(95.dp)
+          .padding(10.dp),
+        strokeWidth = 3.dp,
+      )
+
+      Text(
+        text = stringResource(id = R.string.search_near_driver),
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Medium,
+      )
     }
   }
 }

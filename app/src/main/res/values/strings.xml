@@ -62,4 +62,5 @@
   <string name="hold_icon_down">(Hold Icon Down)</string>
   <string name="ride_completed">Ride Completed</string>
   <string name="slogan">Arrive Before Your Playlist Ends.</string>
+  <string name="search_near_driver">Search Nearby Driver</string>
 </resources>
