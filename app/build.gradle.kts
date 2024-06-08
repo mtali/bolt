@@ -125,6 +125,7 @@ dependencies {
   implementation(libs.play.location)
   implementation(libs.places)
   implementation(libs.maps.services)
+  implementation(libs.maps.utils)
 
   // Flexible BottomSheet
   implementation(libs.flexible.bottomsheet)
