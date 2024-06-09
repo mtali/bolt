@@ -26,7 +26,7 @@ fun getLatLngBounds(vararg positions: LatLng): LatLngBounds {
   return boundsBuilder.build()
 }
 
-suspend fun CameraPositionState.animateToBounds(pos1: LatLng, pos2: LatLng, padding: Int = 100) {
+suspend fun CameraPositionState.animateToBounds(pos1: LatLng, pos2: LatLng, padding: Int) {
   animate(CameraUpdateFactory.newLatLngBounds(getLatLngBounds(pos1, pos2), padding))
 }
 
@@ -35,6 +35,7 @@ suspend fun CameraPositionState.animateToBounds(
   lng1: Double,
   lat2: Double,
   lng2: Double,
+  padding: Int = 150
 ) {
-  animateToBounds(LatLng(lat1, lng1), LatLng(lat2, lng2))
+  animateToBounds(LatLng(lat1, lng1), LatLng(lat2, lng2), padding)
 }

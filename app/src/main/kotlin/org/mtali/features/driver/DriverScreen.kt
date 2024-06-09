@@ -215,7 +215,7 @@ private fun MapEnRoute(
 
   MarkerComposable(
     state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
-    title = "Driver",
+    title = stringResource(id = R.string.driver),
   ) {
     Image(
       painter = painterResource(id = R.drawable.ic_car_marker),
@@ -231,7 +231,7 @@ private fun MapEnRoute(
 
   LaunchedEffect(Unit) {
     cameraPosition.animate(
-      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 14f),
+      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 24f),
     )
   }
 }
@@ -383,12 +383,12 @@ private fun MapPassengerPickup(
 
   Marker(
     state = MarkerState(position = LatLng(uiState.passengerLat, uiState.passengerLng)),
-    title = "Passenger",
+    title = stringResource(id = R.string.passenger),
   )
 
   LaunchedEffect(Unit) {
     cameraPosition.animate(
-      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 14f),
+      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 18f),
     )
   }
 }
