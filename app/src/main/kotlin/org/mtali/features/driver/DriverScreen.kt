@@ -231,7 +231,7 @@ private fun MapEnRoute(
 
   LaunchedEffect(Unit) {
     cameraPosition.animate(
-      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 24f),
+      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 15f),
     )
   }
 }
@@ -388,7 +388,7 @@ private fun MapPassengerPickup(
 
   LaunchedEffect(Unit) {
     cameraPosition.animate(
-      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 18f),
+      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 15f),
     )
   }
 }
