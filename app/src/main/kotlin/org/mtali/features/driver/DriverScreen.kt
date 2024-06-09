@@ -74,7 +74,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.models.Ride
 import org.mtali.core.utils.handleToast
-import timber.log.Timber
 
 @Composable
 fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
@@ -85,10 +84,6 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermission
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
   val passengers by viewModel.locationAwarePassengers.collectAsStateWithLifecycle(initialValue = emptyList())
-
-  LaunchedEffect(uiState) {
-    Timber.tag("wakanda:DriverRoute").d("$uiState")
-  }
 
   DriverScreen(
     uiState = uiState,
