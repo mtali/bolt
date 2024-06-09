@@ -19,13 +19,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.mtali.BuildConfig
 import org.mtali.R
 import org.mtali.core.models.ToastMessage
@@ -37,18 +33,6 @@ val emailPattern = "^[A-Za-z](.*)([@])(.+)(\\\\.)(.+)".toRegex()
 
 inline fun <T> MutableState<T>.update(block: (T) -> T) {
   value = block(value)
-}
-
-fun CoroutineScope.preventMultipleLaunches(
-  mutex: Mutex,
-  operation: suspend () -> Unit,
-) {
-  launch {
-    if (mutex.isLocked) return@launch
-    mutex.withLock {
-      operation()
-    }
-  }
 }
 
 fun String.isValidEmail() = emailPattern.matches(this)
