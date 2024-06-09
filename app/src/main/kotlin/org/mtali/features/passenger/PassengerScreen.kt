@@ -17,6 +17,7 @@ package org.mtali.features.passenger
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,14 +60,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.PolyUtil
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.designsystem.components.AnimatedDrawerMenu
@@ -74,6 +84,7 @@ import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
+import org.mtali.core.utils.animateToBounds
 import org.mtali.core.utils.handleToast
 import timber.log.Timber
 
@@ -136,6 +147,21 @@ private fun PassengerScreen(
             properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
             cameraPositionState = cameraPosition,
           ) {
+            when (uiState) {
+              is PassengerUiState.SearchingForDriver -> {
+                MapSearchingForDriver(uiState, cameraPosition)
+              }
+
+              is PassengerUiState.PassengerPickUp -> {
+                MapPassengerPickUp(uiState, cameraPosition)
+              }
+
+              is PassengerUiState.EnRoute -> {
+                MapPassengerEnRoute(uiState, cameraPosition)
+              }
+
+              else -> Unit
+            }
           }
 
           Column(
@@ -190,6 +216,94 @@ private fun PassengerScreen(
         )
       }
     }
+  }
+}
+
+@Composable
+fun MapPassengerEnRoute(
+  uiState: PassengerUiState.EnRoute,
+  cameraPosition: CameraPositionState,
+) {
+  val route = uiState.destinationRoute
+  if (route != null) {
+    Polyline(
+      points = PolyUtil.decode(route.overviewPolyline.encodedPath),
+      clickable = false,
+      color = MaterialTheme.colorScheme.primary,
+    )
+  }
+
+  MarkerComposable(
+    state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
+    title = "Driver",
+  ) {
+    Image(
+      painter = painterResource(id = R.drawable.ic_car_marker),
+      modifier = Modifier.size(30.dp),
+      contentDescription = null,
+    )
+  }
+
+  Marker(
+    state = MarkerState(position = LatLng(uiState.destinationLat, uiState.destinationLng)),
+    title = uiState.destinationAddress,
+  )
+
+  LaunchedEffect(Unit) {
+    uiState.apply {
+      cameraPosition.animateToBounds(driverLat, driverLng, destinationLat, destinationLng)
+    }
+  }
+}
+
+@Composable
+private fun MapPassengerPickUp(
+  uiState: PassengerUiState.PassengerPickUp,
+  cameraPositionState: CameraPositionState,
+) {
+  val route = uiState.driverRoute
+  if (route != null) {
+    Polyline(
+      points = PolyUtil.decode(route.overviewPolyline.encodedPath),
+      clickable = false,
+      color = MaterialTheme.colorScheme.primary,
+    )
+  }
+  MarkerComposable(
+    state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
+    title = stringResource(id = R.string.driver),
+  ) {
+    Image(
+      painter = painterResource(id = R.drawable.ic_car_marker),
+      modifier = Modifier.size(35.dp),
+      contentDescription = null,
+    )
+  }
+
+  Marker(
+    state = MarkerState(position = LatLng(uiState.passengerLat, uiState.passengerLng)),
+    title = stringResource(id = R.string.you),
+  )
+
+  LaunchedEffect(Unit) {
+    uiState.apply {
+      cameraPositionState.animateToBounds(driverLat, driverLng, passengerLat, passengerLng)
+    }
+  }
+}
+
+@Composable
+private fun MapSearchingForDriver(
+  uiState: PassengerUiState.SearchingForDriver,
+  cameraPositionState: CameraPositionState,
+) {
+  Marker(
+    state = MarkerState(position = LatLng(uiState.passengerLat, uiState.passengerLng)),
+    title = stringResource(id = R.string.you),
+  )
+
+  LaunchedEffect(Unit) {
+    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(uiState.passengerLat, uiState.passengerLng), 14f))
   }
 }
 

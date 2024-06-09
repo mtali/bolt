@@ -64,4 +64,7 @@
   <string name="ride_completed">Ride Completed</string>
   <string name="slogan">Arrive Before Your Playlist Ends.</string>
   <string name="search_near_driver">Search Nearby Driver</string>
+  <string name="you">You</string>
+  <string name="driver">Driver</string>
+  <string name="passenger">Pickup location</string>
 </resources>

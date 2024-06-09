@@ -314,8 +314,8 @@ class PassengerViewModel @Inject constructor(
 
   private suspend fun Ride.routeToDestination(): DirectionsRoute? {
     return getDirections(
-      orgLng = passengerLongitude,
-      orgLat = passengerLatitude,
+      orgLng = driverLongitude!!,
+      orgLat = driverLatitude!!,
       dstLng = destinationLongitude,
       dstLat = destinationLatitude,
     )
