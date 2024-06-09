@@ -17,13 +17,10 @@ package org.mtali.core.data.repositories
 
 import kotlinx.coroutines.flow.Flow
 import org.mtali.core.models.DevicePrefs
-import org.mtali.core.models.Location
 
 interface DeviceRepository {
 
   val devicePrefs: Flow<DevicePrefs>
-
-  suspend fun updateLocation(location: Location)
 
   /**
    * Toggle between passenger and driver

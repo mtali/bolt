@@ -178,7 +178,7 @@ private fun PassengerScreen(
                   autoCompletePlaces = autoCompletePlaces,
                   onClickPlaceAutoComplete = onClickPlaceAutoComplete,
                   expandSearch = expandSearch,
-                  onExpandSearchChange = { expandSearch = it },
+                  onExpandSearchChange = { expand -> expandSearch = expand },
                 )
               }
 

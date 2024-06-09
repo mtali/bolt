@@ -23,7 +23,6 @@ import org.mtali.core.datastore.PreferenceDataStore
 import org.mtali.core.dispatcher.BoltDispatchers.IO
 import org.mtali.core.dispatcher.Dispatcher
 import org.mtali.core.models.DevicePrefs
-import org.mtali.core.models.Location
 import javax.inject.Inject
 
 class DeviceRepositoryImpl @Inject constructor(
@@ -32,10 +31,6 @@ class DeviceRepositoryImpl @Inject constructor(
 ) : DeviceRepository {
 
   override val devicePrefs: Flow<DevicePrefs> = prefsDataStore.devicePrefs
-
-  override suspend fun updateLocation(location: Location) = withContext(ioDispatcher) {
-    prefsDataStore.updateLocation(location)
-  }
 
   override suspend fun toggleUserType() = withContext(ioDispatcher) {
     prefsDataStore.toggleUserType()

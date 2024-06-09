@@ -17,24 +17,24 @@ package org.mtali.features.driver
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.DirectionsRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.domain.GetUserUseCase
 import org.mtali.core.domain.LogoutUseCase
+import org.mtali.core.location.LocationEventBus
+import org.mtali.core.location.dummyLatLng
+import org.mtali.core.location.isDummy
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.Ride
 import org.mtali.core.models.RideStatus
@@ -46,7 +46,6 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val tag = "wakanda:DriverViewModel"
-private const val IMPOSSIBLE_LAT_LON = 999.0
 
 @HiltViewModel
 class DriverViewModel @Inject constructor(
@@ -54,7 +53,6 @@ class DriverViewModel @Inject constructor(
   private val logoutUseCase: LogoutUseCase,
   private val rideRepository: RideRepository,
   private val googleRepository: GoogleRepository,
-  deviceRepository: DeviceRepository,
 ) : ViewModel() {
 
   var toastHandler: ((ToastMessage) -> Unit)? = null
@@ -63,7 +61,8 @@ class DriverViewModel @Inject constructor(
   private val _ride = rideRepository.rideFlow()
   private val _mapIsReady = MutableStateFlow(false)
 
-  private val _driverLocation = deviceRepository.devicePrefs.map { it.deviceLocation }.distinctUntilChanged()
+  private val _driverLatLng = MutableStateFlow(dummyLatLng)
+
   private val _passengersSearching = rideRepository.openRides()
 
   private var refreshPassengersJob: Job? = null
@@ -149,10 +148,10 @@ class DriverViewModel @Inject constructor(
     )
 
   val locationAwarePassengers = combine(
-    _driverLocation,
+    _driverLatLng,
     _passengersSearching,
-  ) { driverLocation, passengersResult ->
-    if (driverLocation == null || (driverLocation.lat == IMPOSSIBLE_LAT_LON || driverLocation.lng == IMPOSSIBLE_LAT_LON)) { // Possible bug: we might get cached location in prefs
+  ) { driverLatLng, passengersResult ->
+    if (driverLatLng.isDummy()) { // Possible bug: we might get cached location in prefs
       emptyList()
     } else {
       when (passengersResult) {
@@ -162,7 +161,7 @@ class DriverViewModel @Inject constructor(
         }
 
         is ServiceResult.Value -> {
-          passengersResult.value.map { ride -> Pair(ride, LatLng(driverLocation.lat, driverLocation.lng)) }
+          passengersResult.value.map { ride -> Pair(ride, driverLatLng) }
         }
       }
     }
@@ -174,7 +173,12 @@ class DriverViewModel @Inject constructor(
     )
 
   init {
+    observeDriverLocation()
     getDriver()
+  }
+
+  private fun observeDriverLocation() {
+    viewModelScope.launch { LocationEventBus.deviceLocation.collect { _driverLatLng.emit(it) } }
   }
 
   private fun getDriver() = viewModelScope.launch {
@@ -281,16 +285,16 @@ class DriverViewModel @Inject constructor(
   fun onRideSelected(selectedRide: Ride) {
     if (rideSelectedJob.isRunning()) return
     rideSelectedJob = viewModelScope.launch {
-      val driverLocation = _driverLocation.first()
+      val driverLatLng = _driverLatLng.value
 
-      if (driverLocation == null) {
+      if (driverLatLng.isDummy()) {
         toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES)
       } else {
         val result = rideRepository.connectDriverToRide(
           driver = _driver.value!!,
           ride = selectedRide.copy(
-            driverLatitude = driverLocation.lat,
-            driverLongitude = driverLocation.lng,
+            driverLatitude = driverLatLng.lat,
+            driverLongitude = driverLatLng.lng,
           ),
         )
 

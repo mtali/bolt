@@ -16,6 +16,5 @@
 package org.mtali.core.models
 
 data class DevicePrefs(
-  val deviceLocation: Location?,
   val userType: UserType,
 )

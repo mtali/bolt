@@ -38,7 +38,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
-import com.google.android.gms.maps.model.LatLng
+import com.google.maps.model.LatLng
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -109,8 +109,8 @@ class MainActivity : ComponentActivity() {
         if (request.isSuccessful && request.result != null) {
           val location = request.result
           val lat = location.latitude
-          val lon = location.longitude
-          viewModel.updateDeviceLocation(LatLng(lat, lon))
+          val lng = location.longitude
+          viewModel.updateDeviceLocation(LatLng(lat, lng))
         } else {
           Timber.e(request.exception)
           Toast.makeText(

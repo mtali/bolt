@@ -17,27 +17,27 @@ package org.mtali.features.passenger
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.maps.model.DirectionsRoute
+import com.google.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.domain.GetUserUseCase
 import org.mtali.core.domain.LogoutUseCase
+import org.mtali.core.location.LocationEventBus
+import org.mtali.core.location.dummyLatLng
+import org.mtali.core.location.isDummy
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.CreateRide
-import org.mtali.core.models.Location
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.models.Ride
 import org.mtali.core.models.RideStatus
@@ -46,10 +46,10 @@ import org.mtali.core.models.ToastMessage
 import org.mtali.core.utils.combineTuple
 import timber.log.Timber
 import javax.inject.Inject
+import com.google.android.gms.maps.model.LatLng as GsmLatLng
 
 @HiltViewModel
 class PassengerViewModel @Inject constructor(
-  deviceRepository: DeviceRepository,
   private val googleRepository: GoogleRepository,
   private val rideRepository: RideRepository,
   private val getUserUseCase: GetUserUseCase,
@@ -68,7 +68,7 @@ class PassengerViewModel @Inject constructor(
   private val _destinationQuery = MutableStateFlow("")
   val destinationQuery: StateFlow<String> = _destinationQuery
 
-  private val devicePrefs = deviceRepository.devicePrefs
+  private val _passengerLatLng = MutableStateFlow(dummyLatLng)
 
   /**
    * Conditions
@@ -174,7 +174,12 @@ class PassengerViewModel @Inject constructor(
     )
 
   init {
+    observePassengerLocation()
     getPassenger()
+  }
+
+  private fun observePassengerLocation() {
+    viewModelScope.launch { LocationEventBus.deviceLocation.collect { _passengerLatLng.emit(it) } }
   }
 
   fun onMapLoaded() {
@@ -251,8 +256,11 @@ class PassengerViewModel @Inject constructor(
           if (destLatLng.value == null) {
             toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES)
           } else {
-            devicePrefs.first().deviceLocation?.let {
-              attemptCreateRide(destLatLng.value, place.address, it)
+            val passengerLatLng = _passengerLatLng.value
+            if (passengerLatLng.isDummy()) {
+              toastHandler?.invoke(ToastMessage.UNABLE_TO_RETRIEVE_COORDINATES) // TODO: Find better message
+            } else {
+              attemptCreateRide(destLatLng.value, place.address, passengerLatLng)
             }
           }
         }
@@ -276,7 +284,7 @@ class PassengerViewModel @Inject constructor(
     _passenger.update { user }
   }
 
-  private suspend fun attemptCreateRide(destLatLon: LatLng, destAddress: String, currentLocation: Location) {
+  private suspend fun attemptCreateRide(destLatLon: GsmLatLng, destAddress: String, currentLocation: LatLng) {
     val passenger = checkNotNull(_passenger.value)
     val createRide = CreateRide(
       passengerId = passenger.userId,

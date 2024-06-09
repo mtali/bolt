@@ -61,7 +61,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
 import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
@@ -71,9 +70,11 @@ import com.google.maps.android.compose.MarkerComposable
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.model.LatLng
 import org.mtali.R
 import org.mtali.core.models.Ride
 import org.mtali.core.utils.handleToast
+import com.google.android.gms.maps.model.LatLng as GsmLatLng
 
 @Composable
 fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
@@ -209,7 +210,7 @@ private fun MapEnRoute(
   }
 
   MarkerComposable(
-    state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
+    state = MarkerState(position = GsmLatLng(uiState.driverLat, uiState.driverLng)),
     title = stringResource(id = R.string.driver),
   ) {
     Image(
@@ -220,13 +221,13 @@ private fun MapEnRoute(
   }
 
   Marker(
-    state = MarkerState(position = LatLng(uiState.destinationLat, uiState.destinationLng)),
+    state = MarkerState(position = GsmLatLng(uiState.destinationLat, uiState.destinationLng)),
     title = uiState.destinationAddress,
   )
 
   LaunchedEffect(Unit) {
     cameraPosition.animate(
-      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 15f),
+      CameraUpdateFactory.newLatLngZoom(GsmLatLng(uiState.driverLat, uiState.driverLng), 15f),
     )
   }
 }
@@ -366,7 +367,7 @@ private fun MapPassengerPickup(
   }
 
   MarkerComposable(
-    state = MarkerState(position = LatLng(uiState.driverLat, uiState.driverLng)),
+    state = MarkerState(position = GsmLatLng(uiState.driverLat, uiState.driverLng)),
     title = "Driver",
   ) {
     Image(
@@ -377,13 +378,13 @@ private fun MapPassengerPickup(
   }
 
   Marker(
-    state = MarkerState(position = LatLng(uiState.passengerLat, uiState.passengerLng)),
+    state = MarkerState(position = GsmLatLng(uiState.passengerLat, uiState.passengerLng)),
     title = stringResource(id = R.string.passenger),
   )
 
   LaunchedEffect(Unit) {
     cameraPosition.animate(
-      CameraUpdateFactory.newLatLngZoom(LatLng(uiState.driverLat, uiState.driverLng), 15f),
+      CameraUpdateFactory.newLatLngZoom(GsmLatLng(uiState.driverLat, uiState.driverLng), 15f),
     )
   }
 }

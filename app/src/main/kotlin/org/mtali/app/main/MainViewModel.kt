@@ -17,7 +17,7 @@ package org.mtali.app.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.maps.model.LatLng
+import com.google.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +30,7 @@ import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.domain.LogoutUseCase
-import org.mtali.core.models.Location
+import org.mtali.core.location.LocationEventBus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import org.mtali.core.models.UserType
@@ -75,8 +75,8 @@ class MainViewModel @Inject constructor(
   }
 
   fun updateDeviceLocation(latLng: LatLng) {
-    Timber.tag("wakanda:MainViewModel").d("Location: ${latLng.asLocation()}")
-    viewModelScope.launch { deviceRepository.updateLocation(latLng.asLocation()) }
+    Timber.i("Location updated to $latLng")
+    viewModelScope.launch { LocationEventBus.updateLocation(latLng) }
   }
 
   fun onToggleUserType() {
@@ -108,5 +108,3 @@ fun MainUiState.Success.getRoute(): String {
     else -> passengerRoute
   }
 }
-
-private fun LatLng.asLocation() = Location(lat = latitude, lng = longitude)

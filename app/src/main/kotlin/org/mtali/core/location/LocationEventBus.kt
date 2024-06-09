@@ -13,11 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mtali.core.models
+package org.mtali.core.location
 
-import kotlinx.serialization.Serializable
+import com.google.maps.model.LatLng
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-@Serializable
-data class Location(val lat: Double, val lng: Double)
+private const val IMPOSSIBLE_LAT_LON = 999.0
 
-fun Location?.display() = this?.let { "(lat=${it.lat}, lon=${it.lng})" } ?: "Unknown location"
+val dummyLatLng = LatLng(IMPOSSIBLE_LAT_LON, IMPOSSIBLE_LAT_LON)
+
+fun LatLng.isDummy() = (lat == IMPOSSIBLE_LAT_LON || lng == IMPOSSIBLE_LAT_LON)
+
+object LocationEventBus {
+  private val _deviceLocation = MutableStateFlow(dummyLatLng)
+  val deviceLocation: StateFlow<LatLng> = _deviceLocation
+
+  suspend fun updateLocation(location: LatLng) {
+    _deviceLocation.emit(location)
+  }
+}

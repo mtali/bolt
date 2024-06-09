@@ -35,7 +35,7 @@ suspend fun CameraPositionState.animateToBounds(
   lng1: Double,
   lat2: Double,
   lng2: Double,
-  padding: Int = 150
+  padding: Int = 150,
 ) {
   animateToBounds(LatLng(lat1, lng1), LatLng(lat2, lng2), padding)
 }
