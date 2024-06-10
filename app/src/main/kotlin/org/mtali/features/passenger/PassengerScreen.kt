@@ -87,7 +87,6 @@ import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.utils.animateToBounds
 import org.mtali.core.utils.handleToast
-import timber.log.Timber
 
 @Composable
 fun PassengerRoute(
@@ -100,9 +99,6 @@ fun PassengerRoute(
   val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  LaunchedEffect(uiState) {
-    Timber.tag("wakanda:PassengerRoute").d("$uiState")
-  }
 
   viewModel.toastHandler = { context.handleToast(it) }
 

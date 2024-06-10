@@ -130,7 +130,7 @@ private fun SignupScreen(
       )
     }
 
-    IconButton(onClick = onClose, modifier = Modifier.padding(8.dp)) {
+    IconButton(onClick = onClose, modifier = Modifier.padding(vertical = 32.dp, horizontal = 16.dp)) {
       Icon(imageVector = Icons.Filled.Close, contentDescription = "close")
     }
   }
