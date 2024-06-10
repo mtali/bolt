@@ -81,6 +81,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.designsystem.components.AnimatedDrawerMenu
 import org.mtali.core.designsystem.components.Height
+import org.mtali.core.designsystem.components.TypewriterText
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
@@ -603,8 +604,7 @@ private fun PlaceAutoCompleteListItem(address: String, onClick: () -> Unit) {
 @Composable
 private fun SearchPlaceholder(onClickSearch: () -> Unit) {
   Column {
-    Text(text = stringResource(id = R.string.slogan), fontSize = 16.sp)
-
+    TypewriterText(texts = listOf(stringResource(id = R.string.slogan)), fontSize = 16.sp, loop = false)
     Height(height = 7.dp)
     Box(
       modifier = Modifier
