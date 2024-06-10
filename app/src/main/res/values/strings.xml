@@ -67,4 +67,11 @@
   <string name="you">You</string>
   <string name="driver">Driver</string>
   <string name="passenger">Pickup location</string>
+  <string name="grant_permissions">Grant permissions</string>
+  <string name="permissions_required">Permission required</string>
+  <string name="please_accept_permissions">Please accept permissions to continue ✨</string>
+  <string name="_require_permission_to_work">requires for the app to work</string>
+  <string name="continue_">Continue</string>
+  <string name="dismiss">Dismiss</string>
+  <string name="_require_permissions">%1$s requires permission(s)</string>
 </resources>

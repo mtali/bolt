@@ -81,19 +81,17 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.designsystem.components.AnimatedDrawerMenu
 import org.mtali.core.designsystem.components.Height
+import org.mtali.core.designsystem.components.PermissionBox
 import org.mtali.core.designsystem.components.TypewriterText
 import org.mtali.core.designsystem.components.Width
 import org.mtali.core.designsystem.components.height
 import org.mtali.core.models.PlacesAutoComplete
 import org.mtali.core.utils.animateToBounds
 import org.mtali.core.utils.handleToast
+import org.mtali.core.utils.locationPermissions
 
 @Composable
-fun PassengerRoute(
-  viewModel: PassengerViewModel = hiltViewModel(),
-  locationPermissionGranted: Boolean,
-  onClickDrawerMenu: () -> Unit,
-) {
+fun PassengerRoute(viewModel: PassengerViewModel = hiltViewModel(), onClickDrawerMenu: () -> Unit) {
   val context = LocalContext.current
   val destinationQuery by viewModel.destinationQuery.collectAsStateWithLifecycle()
   val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
@@ -102,23 +100,26 @@ fun PassengerRoute(
 
   viewModel.toastHandler = { context.handleToast(it) }
 
-  PassengerScreen(
-    onMapLoaded = viewModel::onMapLoaded,
-    locationPermissionGranted = locationPermissionGranted,
-    destinationQuery = destinationQuery,
-    onDestinationQueryChange = viewModel::onDestinationQueryChange,
-    autoCompletePlaces = autoCompletePlaces,
-    onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
-    onClickDrawerMenu = onClickDrawerMenu,
-    onCancelRide = viewModel::onCancelRide,
-    uiState = uiState,
-  )
+  PermissionBox(
+    permissions = locationPermissions,
+    requiredPermissions = listOf(locationPermissions.first()),
+  ) {
+    PassengerScreen(
+      onMapLoaded = viewModel::onMapLoaded,
+      destinationQuery = destinationQuery,
+      onDestinationQueryChange = viewModel::onDestinationQueryChange,
+      autoCompletePlaces = autoCompletePlaces,
+      onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
+      onClickDrawerMenu = onClickDrawerMenu,
+      onCancelRide = viewModel::onCancelRide,
+      uiState = uiState,
+    )
+  }
 }
 
 @Composable
 private fun PassengerScreen(
   onMapLoaded: () -> Unit,
-  locationPermissionGranted: Boolean,
   destinationQuery: String,
   onDestinationQueryChange: (String) -> Unit,
   autoCompletePlaces: List<PlacesAutoComplete>,
@@ -141,7 +142,7 @@ private fun PassengerScreen(
           GoogleMap(
             modifier = Modifier.weight(1f),
             onMapLoaded = onMapLoaded,
-            properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+            properties = MapProperties(isMyLocationEnabled = true),
             cameraPositionState = cameraPosition,
           ) {
             when (uiState) {

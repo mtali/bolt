@@ -72,12 +72,14 @@ import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.model.LatLng
 import org.mtali.R
+import org.mtali.core.designsystem.components.PermissionBox
 import org.mtali.core.models.Ride
 import org.mtali.core.utils.handleToast
+import org.mtali.core.utils.locationPermissions
 import com.google.android.gms.maps.model.LatLng as GsmLatLng
 
 @Composable
-fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermissionGranted: Boolean, onClickDrawerMenu: () -> Unit) {
+fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), onClickDrawerMenu: () -> Unit) {
   val context = LocalContext.current
 
   viewModel.toastHandler = { context.handleToast(it) }
@@ -86,19 +88,23 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), locationPermission
 
   val passengers by viewModel.locationAwarePassengers.collectAsStateWithLifecycle(initialValue = emptyList())
 
-  DriverScreen(
-    uiState = uiState,
-    passengers = passengers,
-    onMapLoaded = viewModel::onMapLoaded,
-    onClickDrawerMenu = onClickDrawerMenu,
-    locationPermissionGranted = locationPermissionGranted,
-    onRefreshPassengers = viewModel::onRefreshPassengers,
-    onRideSelected = viewModel::onRideSelected,
-    onCancelRide = viewModel::onCancelRide,
-    onPickupPassenger = viewModel::advanceRide,
-    onArriveToDestination = viewModel::advanceRide,
-    onRideCompleted = viewModel::onCancelRide,
-  )
+  PermissionBox(
+    permissions = locationPermissions,
+    requiredPermissions = listOf(locationPermissions.first()),
+  ) {
+    DriverScreen(
+      uiState = uiState,
+      passengers = passengers,
+      onMapLoaded = viewModel::onMapLoaded,
+      onClickDrawerMenu = onClickDrawerMenu,
+      onRefreshPassengers = viewModel::onRefreshPassengers,
+      onRideSelected = viewModel::onRideSelected,
+      onCancelRide = viewModel::onCancelRide,
+      onPickupPassenger = viewModel::advanceRide,
+      onArriveToDestination = viewModel::advanceRide,
+      onRideCompleted = viewModel::onCancelRide,
+    )
+  }
 }
 
 @Composable
@@ -109,7 +115,6 @@ private fun DriverScreen(
   passengers: List<Pair<Ride, LatLng>>,
   onMapLoaded: () -> Unit,
   onClickDrawerMenu: () -> Unit,
-  locationPermissionGranted: Boolean,
   onRefreshPassengers: () -> Unit,
   onRideSelected: (Ride) -> Unit,
   onCancelRide: () -> Unit,
@@ -135,7 +140,7 @@ private fun DriverScreen(
       GoogleMap(
         modifier = Modifier.weight(1f),
         onMapLoaded = onMapLoaded,
-        properties = MapProperties(isMyLocationEnabled = locationPermissionGranted),
+        properties = MapProperties(isMyLocationEnabled = true),
         cameraPositionState = cameraPosition,
       ) {
         when (uiState) {

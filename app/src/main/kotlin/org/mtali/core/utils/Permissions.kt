@@ -22,22 +22,18 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import androidx.core.content.ContextCompat
-import org.mtali.core.models.PermissionState
 
-fun Context.openSettings() {
-  Intent(ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)).also {
-    startActivity(it)
-  }
-}
+val locationPermissions = listOf(
+  Manifest.permission.ACCESS_COARSE_LOCATION,
+  Manifest.permission.ACCESS_FINE_LOCATION,
+)
 
-fun devicePermissionStatus(granted: Boolean, showRational: Boolean): PermissionState {
-  return if (granted) {
-    PermissionState.Granted
-  } else if (showRational) {
-    PermissionState.Rejected
-  } else {
-    PermissionState.Denied
+fun Context.openAppSettings() {
+  val intent = Intent(ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    data = Uri.parse("package:$packageName")
   }
+  startActivity(intent)
 }
 
 fun Context.areLocationPermissionGranted(): Boolean {

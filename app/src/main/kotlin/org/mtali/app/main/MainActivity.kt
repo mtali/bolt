@@ -15,7 +15,6 @@
  */
 package org.mtali.app.main
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.location.LocationManager
@@ -87,10 +86,6 @@ class MainActivity : ComponentActivity() {
           appState = appState,
           uiState = uiState,
           onLogout = viewModel::onLogout,
-          shouldShowRequestPermissionRationale = {
-            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)
-          },
-          onLocationPermissionGranted = { requestLocation() },
           onToggleUserType = viewModel::onToggleUserType,
         )
       }

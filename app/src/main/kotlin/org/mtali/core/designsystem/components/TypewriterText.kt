@@ -33,7 +33,7 @@ fun TypewriterText(
   fontSize: TextUnit,
   fontWeight: FontWeight? = null,
   loop: Boolean = true,
-  typingDelay: Long = 90,
+  typingDelay: Long = 30,
   delayBetweenText: Long = 5000,
 ) {
   var textIndex by remember { mutableIntStateOf(0) }
