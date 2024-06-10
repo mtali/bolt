@@ -31,6 +31,7 @@ places = "3.5.0"
 stream = "6.4.0"
 maps-services = "2.1.2"
 maps-utils = "3.3.0"
+accompanist = "0.34.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -79,6 +80,9 @@ stream = { module = "io.getstream:stream-chat-android-ui-components", version.re
 stream-client = { module = "io.getstream:stream-chat-android-client", version.ref = "stream" }
 stream-offline = { module = "io.getstream:stream-chat-android-offline", version.ref = "stream" }
 stream-state = { module = "io.getstream:stream-chat-android-state", version.ref = "stream" }
+# Accompanist
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
+
 
 
 [plugins]

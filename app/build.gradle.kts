@@ -136,6 +136,9 @@ dependencies {
   implementation(libs.stream.offline)
   implementation(libs.stream.state)
 
+  // Accompanist
+  implementation(libs.accompanist.permissions)
+
   // Testing
   testImplementation(libs.junit)
   androidTestImplementation(libs.androidx.junit)
