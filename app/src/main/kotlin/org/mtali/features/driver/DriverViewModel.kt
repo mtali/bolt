@@ -15,6 +15,7 @@
  */
 package org.mtali.features.driver
 
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.maps.model.DirectionsRoute
@@ -32,16 +33,16 @@ import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.domain.GetUserUseCase
 import org.mtali.core.domain.LogoutUseCase
-import org.mtali.core.location.LocationEventBus
-import org.mtali.core.location.dummyLatLng
-import org.mtali.core.location.isDummy
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.Ride
 import org.mtali.core.models.RideStatus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import org.mtali.core.utils.combineTuple
+import org.mtali.core.utils.dummyLatLng
+import org.mtali.core.utils.isDummy
 import org.mtali.core.utils.isRunning
+import org.mtali.core.utils.toLatLng
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -151,7 +152,7 @@ class DriverViewModel @Inject constructor(
     _driverLatLng,
     _passengersSearching,
   ) { driverLatLng, passengersResult ->
-    if (driverLatLng.isDummy()) { // Possible bug: we might get cached location in prefs
+    if (driverLatLng.isDummy()) {
       emptyList()
     } else {
       when (passengersResult) {
@@ -173,12 +174,7 @@ class DriverViewModel @Inject constructor(
     )
 
   init {
-    observeDriverLocation()
     getDriver()
-  }
-
-  private fun observeDriverLocation() {
-    viewModelScope.launch { LocationEventBus.deviceLocation.collect { _driverLatLng.emit(it) } }
   }
 
   private fun getDriver() = viewModelScope.launch {
@@ -335,5 +331,9 @@ class DriverViewModel @Inject constructor(
       RideStatus.PASSENGER_PICK_UP.value -> RideStatus.EN_ROUTE.value
       else -> RideStatus.ARRIVED.value
     }
+  }
+
+  fun updateLocation(location: Location) {
+    _driverLatLng.update { location.toLatLng() }
   }
 }

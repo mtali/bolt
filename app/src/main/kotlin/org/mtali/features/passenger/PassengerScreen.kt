@@ -15,6 +15,8 @@
  */
 package org.mtali.features.passenger
 
+import android.Manifest
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -81,6 +83,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.designsystem.components.AnimatedDrawerMenu
 import org.mtali.core.designsystem.components.Height
+import org.mtali.core.designsystem.components.LocationUpdatesEffect
 import org.mtali.core.designsystem.components.PermissionBox
 import org.mtali.core.designsystem.components.TypewriterText
 import org.mtali.core.designsystem.components.Width
@@ -90,6 +93,7 @@ import org.mtali.core.utils.animateToBounds
 import org.mtali.core.utils.handleToast
 import org.mtali.core.utils.locationPermissions
 
+@SuppressLint("MissingPermission")
 @Composable
 fun PassengerRoute(viewModel: PassengerViewModel = hiltViewModel(), onClickDrawerMenu: () -> Unit) {
   val context = LocalContext.current
@@ -104,6 +108,13 @@ fun PassengerRoute(viewModel: PassengerViewModel = hiltViewModel(), onClickDrawe
     permissions = locationPermissions,
     requiredPermissions = listOf(locationPermissions.first()),
   ) {
+    LocationUpdatesEffect(
+      usePreciseLocation = it.contains(Manifest.permission.ACCESS_FINE_LOCATION),
+      onUpdate = { locationRequest ->
+        locationRequest.locations.forEach { loc -> viewModel.updateLocation(loc) }
+      },
+    )
+
     PassengerScreen(
       onMapLoaded = viewModel::onMapLoaded,
       destinationQuery = destinationQuery,

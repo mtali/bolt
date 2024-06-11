@@ -15,6 +15,7 @@
  */
 package org.mtali.features.driver
 
+import android.Manifest
 import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -72,6 +73,7 @@ import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.model.LatLng
 import org.mtali.R
+import org.mtali.core.designsystem.components.LocationUpdatesEffect
 import org.mtali.core.designsystem.components.PermissionBox
 import org.mtali.core.models.Ride
 import org.mtali.core.utils.handleToast
@@ -79,6 +81,7 @@ import org.mtali.core.utils.locationPermissions
 import com.google.android.gms.maps.model.LatLng as GsmLatLng
 
 @Composable
+@SuppressLint("MissingPermission")
 fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), onClickDrawerMenu: () -> Unit) {
   val context = LocalContext.current
 
@@ -92,6 +95,13 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), onClickDrawerMenu:
     permissions = locationPermissions,
     requiredPermissions = listOf(locationPermissions.first()),
   ) {
+    LocationUpdatesEffect(
+      usePreciseLocation = it.contains(Manifest.permission.ACCESS_FINE_LOCATION),
+      onUpdate = { locationRequest ->
+        locationRequest.locations.forEach { loc -> viewModel.updateLocation(loc) }
+      },
+    )
+
     DriverScreen(
       uiState = uiState,
       passengers = passengers,

@@ -17,7 +17,6 @@ package org.mtali.app.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +29,6 @@ import org.mtali.core.data.repositories.DeviceRepository
 import org.mtali.core.data.repositories.FirebaseAuthRepository
 import org.mtali.core.data.repositories.StreamUserRepository
 import org.mtali.core.domain.LogoutUseCase
-import org.mtali.core.location.LocationEventBus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import org.mtali.core.models.UserType
@@ -38,7 +36,6 @@ import org.mtali.core.utils.isRunning
 import org.mtali.features.driver.navigation.driverRoute
 import org.mtali.features.login.navigation.navigation.loginRoute
 import org.mtali.features.passenger.navigation.passengerRoute
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -72,11 +69,6 @@ class MainViewModel @Inject constructor(
 
   fun onLogout() {
     firebaseAuthRepository.logout()
-  }
-
-  fun updateDeviceLocation(latLng: LatLng) {
-    Timber.i("Location updated to $latLng")
-    viewModelScope.launch { LocationEventBus.updateLocation(latLng) }
   }
 
   fun onToggleUserType() {

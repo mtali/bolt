@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mtali.core.location
+package org.mtali.core.utils
 
+import android.location.Location
 import com.google.maps.model.LatLng
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 private const val IMPOSSIBLE_LAT_LON = 999.0
 
@@ -25,11 +24,4 @@ val dummyLatLng = LatLng(IMPOSSIBLE_LAT_LON, IMPOSSIBLE_LAT_LON)
 
 fun LatLng.isDummy() = (lat == IMPOSSIBLE_LAT_LON || lng == IMPOSSIBLE_LAT_LON)
 
-object LocationEventBus {
-  private val _deviceLocation = MutableStateFlow(dummyLatLng)
-  val deviceLocation: StateFlow<LatLng> = _deviceLocation
-
-  suspend fun updateLocation(location: LatLng) {
-    _deviceLocation.emit(location)
-  }
-}
+fun Location.toLatLng() = LatLng(latitude, longitude)

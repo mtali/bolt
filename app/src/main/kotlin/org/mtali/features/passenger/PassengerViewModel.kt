@@ -15,6 +15,7 @@
  */
 package org.mtali.features.passenger
 
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.places.api.model.AutocompletePrediction
@@ -33,9 +34,6 @@ import org.mtali.core.data.repositories.GoogleRepository
 import org.mtali.core.data.repositories.RideRepository
 import org.mtali.core.domain.GetUserUseCase
 import org.mtali.core.domain.LogoutUseCase
-import org.mtali.core.location.LocationEventBus
-import org.mtali.core.location.dummyLatLng
-import org.mtali.core.location.isDummy
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.CreateRide
 import org.mtali.core.models.PlacesAutoComplete
@@ -44,6 +42,9 @@ import org.mtali.core.models.RideStatus
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.ToastMessage
 import org.mtali.core.utils.combineTuple
+import org.mtali.core.utils.dummyLatLng
+import org.mtali.core.utils.isDummy
+import org.mtali.core.utils.toLatLng
 import timber.log.Timber
 import javax.inject.Inject
 import com.google.android.gms.maps.model.LatLng as GsmLatLng
@@ -174,12 +175,7 @@ class PassengerViewModel @Inject constructor(
     )
 
   init {
-    observePassengerLocation()
     getPassenger()
-  }
-
-  private fun observePassengerLocation() {
-    viewModelScope.launch { LocationEventBus.deviceLocation.collect { _passengerLatLng.emit(it) } }
   }
 
   fun onMapLoaded() {
@@ -349,6 +345,10 @@ class PassengerViewModel @Inject constructor(
 
       is ServiceResult.Value -> directions.value
     }
+  }
+
+  fun updateLocation(location: Location) {
+    _passengerLatLng.update { location.toLatLng() }
   }
 }
 
