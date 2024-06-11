@@ -80,7 +80,7 @@ fun LocationUpdatesEffect(
 }
 
 @Composable
-fun rememberLocationRequest(usePreciseLocation: Boolean) = remember(usePreciseLocation) {
+private fun rememberLocationRequest(usePreciseLocation: Boolean) = remember(usePreciseLocation) {
   val priority = if (usePreciseLocation) {
     Priority.PRIORITY_HIGH_ACCURACY
   } else {
