@@ -30,6 +30,7 @@ import org.mtali.core.dispatcher.Dispatcher
 import org.mtali.core.keys.KEY_ROLE
 import org.mtali.core.keys.KEY_STATUS
 import org.mtali.core.keys.KEY_TYPE
+import org.mtali.core.keys.STREAM_USER_ROLE_ADMIN
 import org.mtali.core.models.BoltUser
 import org.mtali.core.models.ServiceResult
 import org.mtali.core.models.UserStatus
@@ -61,7 +62,7 @@ class StreamUserRepositoryImpl @Inject constructor(
    * for this to work (by default users can't update their roles)
    */
   private suspend fun roleToAdmin(userId: String): Result<User> {
-    return client.partialUpdateUser(id = userId, mapOf(KEY_ROLE to "admin")).await()
+    return client.partialUpdateUser(id = userId, mapOf(KEY_ROLE to STREAM_USER_ROLE_ADMIN)).await()
   }
 
   override suspend fun initSteamUser(user: BoltUser): ServiceResult<BoltUser> = withContext(ioDispatcher) {
