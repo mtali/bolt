@@ -37,11 +37,11 @@ fun NavController.navigateToChat(channelId: String, navOptions: NavOptions? = nu
   navigate("chat_route/${Uri.encode(channelId)}", navOptions)
 }
 
-fun NavGraphBuilder.chatScreen() {
+fun NavGraphBuilder.chatScreen(onBackPressed: () -> Unit) {
   composable(
     route = CHAT_ROUTE,
     arguments = listOf(navArgument(CHANNEL_ID) { type = NavType.StringType }),
   ) {
-    ChatRoute()
+    ChatRoute(onBackPressed = onBackPressed)
   }
 }

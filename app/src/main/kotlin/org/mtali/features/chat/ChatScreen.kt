@@ -27,12 +27,12 @@ import io.getstream.chat.android.compose.ui.theme.ChatTheme
 import io.getstream.chat.android.compose.viewmodel.messages.MessagesViewModelFactory
 
 @Composable
-fun ChatRoute(viewModel: ChatViewModel = hiltViewModel()) {
-  ChatScreen(viewModel.args.channelId)
+fun ChatRoute(viewModel: ChatViewModel = hiltViewModel(), onBackPressed: () -> Unit) {
+  ChatScreen(viewModel.args.channelId, onBackPressed)
 }
 
 @Composable
-private fun ChatScreen(channelId: String) {
+private fun ChatScreen(channelId: String, onBackPressed: () -> Unit) {
   val context = LocalContext.current
   Scaffold { padding ->
     Box(modifier = Modifier.padding(padding)) {
@@ -43,6 +43,7 @@ private fun ChatScreen(channelId: String) {
             channelId = channelId,
             messageLimit = 30,
           ),
+          onBackPressed = onBackPressed,
         )
       }
     }

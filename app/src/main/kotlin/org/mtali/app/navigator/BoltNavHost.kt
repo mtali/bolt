@@ -61,7 +61,7 @@ fun BoltNavHost(
       onClickChat = { navController.navigateToChat(it) },
     )
 
-    chatScreen()
+    chatScreen(onBackPressed = { appState.onBackClick() })
   }
 }
 
