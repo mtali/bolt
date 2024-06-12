@@ -22,10 +22,12 @@ import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.maps.model.DirectionsRoute
 import com.google.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -44,11 +46,13 @@ import org.mtali.core.models.ToastMessage
 import org.mtali.core.utils.combineTuple
 import org.mtali.core.utils.dummyLatLng
 import org.mtali.core.utils.isDummy
+import org.mtali.core.utils.isRunning
 import org.mtali.core.utils.toLatLng
 import timber.log.Timber
 import javax.inject.Inject
 import com.google.android.gms.maps.model.LatLng as GsmLatLng
 
+// TODO: Prevent multiple operation clicks
 @HiltViewModel
 class PassengerViewModel @Inject constructor(
   private val googleRepository: GoogleRepository,
@@ -68,6 +72,8 @@ class PassengerViewModel @Inject constructor(
 
   private val _destinationQuery = MutableStateFlow("")
   val destinationQuery: StateFlow<String> = _destinationQuery
+
+  private var navigateToChatJob: Job? = null
 
   private val _passengerLatLng = MutableStateFlow(dummyLatLng)
 
@@ -349,6 +355,16 @@ class PassengerViewModel @Inject constructor(
 
   fun updateLocation(location: Location) {
     _passengerLatLng.update { location.toLatLng() }
+  }
+
+  fun navigateToChat(onSuccess: (channelId: String) -> Unit) {
+    if (navigateToChatJob.isRunning()) return
+    navigateToChatJob = viewModelScope.launch {
+      val currentRide = _rideResult.first()
+      if (currentRide is ServiceResult.Value) {
+        currentRide.value?.rideId?.let { onSuccess(it) }
+      }
+    }
   }
 }
 

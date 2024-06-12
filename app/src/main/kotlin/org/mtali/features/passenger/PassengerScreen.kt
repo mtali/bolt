@@ -82,6 +82,7 @@ import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import org.mtali.R
 import org.mtali.core.designsystem.components.AnimatedDrawerMenu
+import org.mtali.core.designsystem.components.ChatButton
 import org.mtali.core.designsystem.components.Height
 import org.mtali.core.designsystem.components.LocationUpdatesEffect
 import org.mtali.core.designsystem.components.PermissionBox
@@ -95,7 +96,11 @@ import org.mtali.core.utils.locationPermissions
 
 @SuppressLint("MissingPermission")
 @Composable
-fun PassengerRoute(viewModel: PassengerViewModel = hiltViewModel(), onClickDrawerMenu: () -> Unit) {
+fun PassengerRoute(
+  viewModel: PassengerViewModel = hiltViewModel(),
+  onClickDrawerMenu: () -> Unit,
+  onClickChat: (String) -> Unit,
+) {
   val context = LocalContext.current
   val destinationQuery by viewModel.destinationQuery.collectAsStateWithLifecycle()
   val autoCompletePlaces by viewModel.autoCompletePlaces.collectAsStateWithLifecycle()
@@ -123,6 +128,7 @@ fun PassengerRoute(viewModel: PassengerViewModel = hiltViewModel(), onClickDrawe
       onClickPlaceAutoComplete = viewModel::onClickPlaceAutoComplete,
       onClickDrawerMenu = onClickDrawerMenu,
       onCancelRide = viewModel::onCancelRide,
+      onClickChat = { viewModel.navigateToChat(onClickChat) },
       uiState = uiState,
     )
   }
@@ -138,6 +144,7 @@ private fun PassengerScreen(
   onClickDrawerMenu: () -> Unit,
   uiState: PassengerUiState,
   onCancelRide: () -> Unit,
+  onClickChat: () -> Unit,
 ) {
   Scaffold {
     Column(
@@ -197,7 +204,7 @@ private fun PassengerScreen(
               }
 
               is PassengerUiState.PassengerPickUp -> {
-                PassengerPickUpCard(uiState, onCancelRide)
+                PassengerPickUpCard(uiState, onCancelRide, onClickChat)
               }
 
               is PassengerUiState.EnRoute -> {
@@ -407,6 +414,7 @@ private fun PassengerEnRoute(uiState: PassengerUiState.EnRoute) {
 private fun PassengerPickUpCard(
   uiState: PassengerUiState.PassengerPickUp,
   onCancelRide: () -> Unit,
+  onClickChat: () -> Unit,
 ) {
   val route = uiState.driverRoute
   val leg = route?.legs?.first()
@@ -427,6 +435,12 @@ private fun PassengerPickUpCard(
     }
 
     HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+    ChatButton(
+      modifier = Modifier.padding(vertical = 8.dp),
+      text = R.string.contact_driver,
+      onClick = onClickChat,
+    )
 
     Row(
       modifier = Modifier.fillMaxWidth(),

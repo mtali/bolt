@@ -27,10 +27,11 @@ fun NavController.navigateToDriver(navOptions: NavOptions? = null) {
   navigate(driverRoute, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.driverScreen(onClickDrawerMenu: () -> Unit) {
+fun NavGraphBuilder.driverScreen(onClickDrawerMenu: () -> Unit, onClickChat: (String) -> Unit) {
   composable(driverRoute) {
     DriverRoute(
       onClickDrawerMenu = onClickDrawerMenu,
+      onClickChat = onClickChat,
     )
   }
 }

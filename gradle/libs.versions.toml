@@ -80,6 +80,8 @@ stream = { module = "io.getstream:stream-chat-android-ui-components", version.re
 stream-client = { module = "io.getstream:stream-chat-android-client", version.ref = "stream" }
 stream-offline = { module = "io.getstream:stream-chat-android-offline", version.ref = "stream" }
 stream-state = { module = "io.getstream:stream-chat-android-state", version.ref = "stream" }
+stream-compose = { module = "io.getstream:stream-chat-android-compose", version.ref = "stream" }
+
 # Accompanist
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 

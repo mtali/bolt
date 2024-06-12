@@ -13,22 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.mtali.features.passenger.navigation
+package org.mtali.features.chat.navigation
 
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
-import org.mtali.features.passenger.PassengerRoute
+import androidx.navigation.navArgument
+import org.mtali.features.chat.ChatRoute
 
-const val passengerRoute = "passenger_route"
+const val CHANNEL_ID = "channelId"
+const val CHAT_ROUTE = "chat_route/{$CHANNEL_ID}"
 
-fun NavController.navigateToPassenger(navOptions: NavOptions? = null) {
-  navigate(passengerRoute, navOptions = navOptions)
+class ChatArgs(val channelId: String) {
+  constructor(savedStateHandle: SavedStateHandle) :
+    this(checkNotNull(savedStateHandle.get<String>(CHANNEL_ID)))
 }
 
-fun NavGraphBuilder.passengerScreen(onClickDrawerMenu: () -> Unit, onClickChat: (String) -> Unit) {
-  composable(passengerRoute) {
-    PassengerRoute(onClickDrawerMenu = onClickDrawerMenu, onClickChat = onClickChat)
+fun NavController.navigateToChat(channelId: String, navOptions: NavOptions? = null) {
+  navigate("chat_route/${Uri.encode(channelId)}", navOptions)
+}
+
+fun NavGraphBuilder.chatScreen() {
+  composable(
+    route = CHAT_ROUTE,
+    arguments = listOf(navArgument(CHANNEL_ID) { type = NavType.StringType }),
+  ) {
+    ChatRoute()
   }
 }

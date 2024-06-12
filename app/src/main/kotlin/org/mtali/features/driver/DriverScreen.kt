@@ -73,6 +73,7 @@ import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.model.LatLng
 import org.mtali.R
+import org.mtali.core.designsystem.components.ChatButton
 import org.mtali.core.designsystem.components.LocationUpdatesEffect
 import org.mtali.core.designsystem.components.PermissionBox
 import org.mtali.core.models.Ride
@@ -82,7 +83,11 @@ import com.google.android.gms.maps.model.LatLng as GsmLatLng
 
 @Composable
 @SuppressLint("MissingPermission")
-fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), onClickDrawerMenu: () -> Unit) {
+fun DriverRoute(
+  viewModel: DriverViewModel = hiltViewModel(),
+  onClickDrawerMenu: () -> Unit,
+  onClickChat: (String) -> Unit,
+) {
   val context = LocalContext.current
 
   viewModel.toastHandler = { context.handleToast(it) }
@@ -113,6 +118,7 @@ fun DriverRoute(viewModel: DriverViewModel = hiltViewModel(), onClickDrawerMenu:
       onPickupPassenger = viewModel::advanceRide,
       onArriveToDestination = viewModel::advanceRide,
       onRideCompleted = viewModel::onCancelRide,
+      onClickChat = { viewModel.navigateToChat(onClickChat) },
     )
   }
 }
@@ -131,6 +137,7 @@ private fun DriverScreen(
   onPickupPassenger: () -> Unit,
   onArriveToDestination: () -> Unit,
   onRideCompleted: () -> Unit,
+  onClickChat: () -> Unit,
 ) {
   Scaffold(
     topBar = {
@@ -194,6 +201,7 @@ private fun DriverScreen(
               uiState = uiState,
               onCancelRide = onCancelRide,
               onPickupPassenger = onPickupPassenger,
+              onClickChat = onClickChat,
             )
           }
 
@@ -409,6 +417,7 @@ private fun PassengerPickUpCard(
   uiState: DriverUiState.PassengerPickUp,
   onCancelRide: () -> Unit,
   onPickupPassenger: () -> Unit,
+  onClickChat: () -> Unit,
 ) {
   val route = uiState.passengerRoute
   val leg = route?.legs?.first()
@@ -434,6 +443,12 @@ private fun PassengerPickUpCard(
     }
 
     HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+    ChatButton(
+      modifier = Modifier.padding(vertical = 8.dp),
+      text = R.string.contact_passenger,
+      onClick = onClickChat,
+    )
 
     Row(
       modifier = Modifier.fillMaxWidth(),

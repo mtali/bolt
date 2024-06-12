@@ -135,6 +135,7 @@ dependencies {
   implementation(libs.stream.client)
   implementation(libs.stream.offline)
   implementation(libs.stream.state)
+  implementation(libs.stream.compose)
 
   // Accompanist
   implementation(libs.accompanist.permissions)

@@ -70,6 +70,7 @@ class DriverViewModel @Inject constructor(
   private var rideSelectedJob: Job? = null
   private var cancelRideJob: Job? = null
   private var advanceRideJob: Job? = null
+  private var navigateToChatJob: Job? = null
 
   val uiState = combineTuple(
     _ride,
@@ -335,5 +336,15 @@ class DriverViewModel @Inject constructor(
 
   fun updateLocation(location: Location) {
     _driverLatLng.update { location.toLatLng() }
+  }
+
+  fun navigateToChat(onSuccess: (channelId: String) -> Unit) {
+    if (navigateToChatJob.isRunning()) return
+    navigateToChatJob = viewModelScope.launch {
+      val currentRide = _ride.first()
+      if (currentRide is ServiceResult.Value) {
+        currentRide.value?.rideId?.let { onSuccess(it) }
+      }
+    }
   }
 }
