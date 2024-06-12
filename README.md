@@ -8,7 +8,8 @@
 
 # 🚗 Bolt Clone App
 
-Welcome to the unofficial Bolt clone app! This project is an early-stage clone of the Bolt app, showcasing modern Android development tools and libraries.
+Welcome to the unofficial Bolt clone app! This project is an early-stage clone of the Bolt app, showcasing modern Android development tools and libraries. It is built entirely with Jetpack Compose and
+Kotlin.
 
 ## Status: 🚧 Active Development 🚧
 
@@ -85,6 +86,15 @@ Distributed under the MIT License. See `LICENSE` for more info.
 - [Google Places](https://developers.google.com/places)
 - [Material Design](https://material.io/)
 - [Firestore](https://firebase.google.com/docs/firestore)
+
+## Resources & Inspirations
+
+Here are some resources and inspirations for your project:
+
+- [UnterRideshare](https://github.com/BracketCove/UnterRideshare)
+- [NowInAndroid](https://github.com/android/nowinandroid)
+- [PlatformSamples](https://github.com/android/platform-samples)
+- [Bolt](https://bolt.eu/en-tz/)
 
 ## Contact
 
