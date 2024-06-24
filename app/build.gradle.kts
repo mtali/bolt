@@ -74,6 +74,7 @@ dependencies {
   // Lifecycle
   implementation(libs.androidx.lifecycle.runtime.ktx)
   implementation(libs.androidx.lifecycle.runtime.compose)
+  implementation(libs.androidx.lifecycle.viewmodel.compose)
 
   // Compose + UI + Navigation
   val composeBom = platform(libs.androidx.compose.bom)
