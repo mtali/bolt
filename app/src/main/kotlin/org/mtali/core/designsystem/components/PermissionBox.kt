@@ -124,8 +124,7 @@ private fun PermissionsScreen(
       text = stringResource(id = R.string._require_permissions, stringResource(id = R.string.app_name)),
       style = MaterialTheme.typography.titleLarge,
       modifier = Modifier.padding(16.dp),
-
-      )
+    )
     Text(
       text = permissions,
       style = MaterialTheme.typography.bodyMedium,
