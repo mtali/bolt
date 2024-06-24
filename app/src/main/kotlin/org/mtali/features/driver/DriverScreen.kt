@@ -477,6 +477,7 @@ private fun PassengerPickUpCard(
       ChatButton(
         modifier = Modifier.padding(vertical = 8.dp),
         title = null,
+        hasMessages = uiState.totalMessages > 0,
         onClick = onClickChat,
       )
     }

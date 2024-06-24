@@ -442,6 +442,7 @@ private fun PassengerPickUpCard(
         .padding(vertical = 8.dp),
       title = R.string.chat,
       onClick = onClickChat,
+      hasMessages = uiState.totalMessages > 0,
     )
 
     Row(

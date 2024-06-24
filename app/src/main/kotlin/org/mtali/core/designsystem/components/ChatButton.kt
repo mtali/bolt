@@ -29,6 +29,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,29 +43,43 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ChatButton(modifier: Modifier = Modifier, @StringRes title: Int?, onClick: () -> Unit) {
+fun ChatButton(
+  modifier: Modifier = Modifier,
+  @StringRes title: Int?,
+  hasMessages: Boolean = false,
+  onClick: () -> Unit,
+) {
   Box(modifier = modifier) {
     Column(
       modifier = Modifier.align(Alignment.Center),
       verticalArrangement = Arrangement.Center,
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-      Box(
-        modifier = Modifier
-          .size(55.dp)
-          .clip(RoundedCornerShape(100f))
-          .background(MaterialTheme.colorScheme.inverseOnSurface)
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple(),
-          ) { onClick() },
-        contentAlignment = Alignment.Center,
+      BadgedBox(
+        badge = {
+          if (hasMessages) {
+            Badge()
+          }
+        },
       ) {
-        Icon(
-          imageVector = Icons.AutoMirrored.Outlined.Message,
-          contentDescription = title?.let { stringResource(id = title) },
-        )
+        Box(
+          modifier = Modifier
+            .size(55.dp)
+            .clip(RoundedCornerShape(100f))
+            .background(MaterialTheme.colorScheme.inverseOnSurface)
+            .clickable(
+              interactionSource = remember { MutableInteractionSource() },
+              indication = rememberRipple(),
+            ) { onClick() },
+          contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Outlined.Message,
+            contentDescription = title?.let { stringResource(id = title) },
+          )
+        }
       }
+
       Spacer(modifier = Modifier.height(4.dp))
       title?.let {
         Text(text = stringResource(id = title))
