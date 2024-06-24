@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,11 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import org.mtali.R
 
 @Composable
-fun ChatButton(modifier: Modifier = Modifier, @StringRes text: Int, onClick: () -> Unit) {
-  Box(modifier = modifier.fillMaxWidth()) {
+fun ChatButton(modifier: Modifier = Modifier, @StringRes title: Int?, onClick: () -> Unit) {
+  Box(modifier = modifier) {
     Column(
       modifier = Modifier.align(Alignment.Center),
       verticalArrangement = Arrangement.Center,
@@ -61,10 +59,15 @@ fun ChatButton(modifier: Modifier = Modifier, @StringRes text: Int, onClick: () 
           ) { onClick() },
         contentAlignment = Alignment.Center,
       ) {
-        Icon(imageVector = Icons.AutoMirrored.Outlined.Message, contentDescription = stringResource(id = text))
+        Icon(
+          imageVector = Icons.AutoMirrored.Outlined.Message,
+          contentDescription = title?.let { stringResource(id = title) },
+        )
       }
       Spacer(modifier = Modifier.height(4.dp))
-      Text(text = stringResource(id = R.string.chat))
+      title?.let {
+        Text(text = stringResource(id = title))
+      }
     }
   }
 }

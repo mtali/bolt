@@ -437,8 +437,10 @@ private fun PassengerPickUpCard(
     HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
 
     ChatButton(
-      modifier = Modifier.padding(vertical = 8.dp),
-      text = R.string.contact_driver,
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp),
+      title = R.string.chat,
       onClick = onClickChat,
     )
 
