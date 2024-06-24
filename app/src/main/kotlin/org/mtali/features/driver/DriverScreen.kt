@@ -391,7 +391,7 @@ private fun MapPassengerPickup(
 
   MarkerComposable(
     state = MarkerState(position = GsmLatLng(uiState.driverLat, uiState.driverLng)),
-    title = "Driver",
+    title = stringResource(id = R.string.driver),
   ) {
     Image(
       painter = painterResource(id = R.drawable.ic_car_marker),
