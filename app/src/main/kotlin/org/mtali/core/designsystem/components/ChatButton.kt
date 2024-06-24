@@ -16,16 +16,55 @@
 package org.mtali.core.designsystem.components
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Message
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import org.mtali.R
 
 @Composable
 fun ChatButton(modifier: Modifier = Modifier, @StringRes text: Int, onClick: () -> Unit) {
-  Button(modifier = modifier.fillMaxWidth(), onClick = onClick) {
-    Text(text = stringResource(id = text))
+  Box(modifier = modifier.fillMaxWidth()) {
+    Column(
+      modifier = Modifier.align(Alignment.Center),
+      verticalArrangement = Arrangement.Center,
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      Box(
+        modifier = Modifier
+          .size(55.dp)
+          .clip(RoundedCornerShape(100f))
+          .background(MaterialTheme.colorScheme.inverseOnSurface)
+          .clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = rememberRipple(),
+          ) { onClick() },
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(imageVector = Icons.AutoMirrored.Outlined.Message, contentDescription = stringResource(id = text))
+      }
+      Spacer(modifier = Modifier.height(4.dp))
+      Text(text = stringResource(id = R.string.chat))
+    }
   }
 }
