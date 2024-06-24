@@ -76,4 +76,6 @@
   <string name="_require_permissions">%1$s requires permission(s)</string>
   <string name="contact_driver">Contact Driver</string>
   <string name="contact_passenger">Contact Passenger</string>
+  <string name="message">Message</string>
+  <string name="chat">Chat</string>
 </resources>
